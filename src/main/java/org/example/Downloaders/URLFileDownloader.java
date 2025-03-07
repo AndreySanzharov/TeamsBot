@@ -1,4 +1,4 @@
-package org.example;
+package org.example.Downloaders;
 
 import com.google.gson.Gson;
 
@@ -8,15 +8,18 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import org.example.GsonFileObject;
 
 public class URLFileDownloader {
+    private String filename;
+
+    public void setFilename(String filename) {
+        this.filename = filename;
+    }
+
     public void downloadFile(GsonFileObject gsonFileObject, String savePath) {
         try {
             URL url = new URL(gsonFileObject.getUrl());
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            String filename = "input.mp3";
             //String path = savePath + gsonFileObject.getFilename();
             String path = savePath + filename;
             int responseCode = connection.getResponseCode();
@@ -66,6 +69,8 @@ public class URLFileDownloader {
         }
         return gson.fromJson(readyGson, GsonFileObject.class);
     }
+
+
 //        public static void main(String[] args) {
 //        String savePath = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\";
 //        String url = "https://api.vkteams-test.ext.lukoil.com/bot/v1/files/getInfo/?token=001.3509189690.2901436216:1000000011&fileId=YaKyM6XDWUbSux99wXuq3967c05fa01bg";

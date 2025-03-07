@@ -23,17 +23,17 @@ public class VoskFileRecognizer {
 
         try {
             AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(audioFilePath));
-             byte[] buffer = new byte[100000];
-             int bytesRead;
+            byte[] buffer = new byte[100000];
+            int bytesRead;
 
-             while ((bytesRead = audioInputStream.read(buffer)) != -1){
-               recognizer.acceptWaveForm(buffer, bytesRead);
-             }
+            while ((bytesRead = audioInputStream.read(buffer)) != -1) {
+                recognizer.acceptWaveForm(buffer, bytesRead);
+            }
 
             System.out.println(recognizer.getResult());
-             text = recognizer.getResult();
-             recognizer.close();
-             model.close();
+            text = recognizer.getResult();
+            recognizer.close();
+            model.close();
         } catch (UnsupportedAudioFileException | IOException e) {
             e.getStackTrace();
         }

@@ -1,20 +1,20 @@
 package org.example.Audio;
 
-import java.io.*;
+import org.vosk.LibVosk;
+import org.vosk.LogLevel;
+import org.vosk.Model;
+import org.vosk.Recognizer;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
-
-import org.vosk.LogLevel;
-import org.vosk.Recognizer;
-import org.vosk.LibVosk;
-import org.vosk.Model;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class DecoderDemo {
 
-    public void decodeWav(){
+    public void decodeWav() {
         LibVosk.setLogLevel(LogLevel.DEBUG);
         String uri = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\output.wav";
 

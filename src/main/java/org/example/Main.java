@@ -4,6 +4,7 @@ import javazoom.jl.decoder.JavaLayerException;
 import org.example.Audio.DecoderDemo;
 import org.example.Audio.MP3Formatter;
 import org.example.Audio.MP3ToWavConverterJlayer;
+import org.example.Downloaders.URLFileDownloader;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
 import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
@@ -22,20 +23,14 @@ import java.util.List;
 public class Main {
     private static final String token = "001.3509189690.2901436216:1000000011";
     private static final BotApiClient client = new BotApiClient("https://api.vkteams-test.ext.lukoil.com", token, 0, 60);
-
-
-    private static final String SAVE_PATH = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\";
-
-    private static String chatId = "";
-    private static Long messageId;
-
-
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
+    private static final String SAVE_PATH = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\";
     private static final URLFileDownloader urlFileDownloader = new URLFileDownloader();
-
     private static final MP3Formatter mp3Formatter = new MP3Formatter();
     private static final MP3ToWavConverterJlayer mp3ToWavConverterJlayer = new MP3ToWavConverterJlayer();
     private static final DecoderDemo decoderDemo = new DecoderDemo();
+    private static String chatId = "";
+    private static Long messageId;
 
     public static void main(String[] args) throws IOException {
         client.addOnEventFetchListener(events -> {
@@ -121,21 +116,28 @@ public class Main {
         try {
             filePart = (File) newMessageEvent.getParts().getFirst();
             tokenFile = filePart.getFileId();
-        } catch (Exception e) {
+            System.out.println("token: " + tokenFile);
+            String fileUrl = baseUrl + tokenFile;
+            System.out.println("full url: " + fileUrl);
+            urlFileDownloader.setFilename("inputFile.txt");
+            urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
+
+        } catch (Exception exception) {
             voicePart = (Voice) newMessageEvent.getParts().getFirst();
             tokenFile = voicePart.getFileId();
-        }
-        System.out.println("token: " + tokenFile);
-        String fileUrl = baseUrl + tokenFile;
-        System.out.println("full url: " + fileUrl);
-        urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
-        try {
-            MP3Formatter.formatMp3("C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\input.mp3");
-            mp3ToWavConverterJlayer.convertMp3ToWav();
-            decoderDemo.decodeWav();
+            System.out.println("token: " + tokenFile);
+            String fileUrl = baseUrl + tokenFile;
+            System.out.println("full url: " + fileUrl);
+            urlFileDownloader.setFilename("input.mp3");
+            urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
+            try {
+                MP3Formatter.formatMp3("C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\input.mp3");
+                mp3ToWavConverterJlayer.convertMp3ToWav();
+                decoderDemo.decodeWav();
+            } catch (JavaLayerException javaLayerException) {
+                exception.getStackTrace();
+            }
 
-        } catch (JavaLayerException e) {
-            throw new RuntimeException(e);
         }
 
 
