@@ -3,7 +3,7 @@ package org.example.Audio;
 import javazoom.jl.converter.Converter;
 import javazoom.jl.decoder.JavaLayerException;
 
-public class MP3ToWavConverterJlayer {
+public class Mp3ToWavConverterJlayer {
     private final String sourceName = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\formatted.mp3";
     private final String destinationName = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\output.wav";
 

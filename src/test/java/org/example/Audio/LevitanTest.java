@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 class LevitanTest {
     static MP3Formatter mp3Formatter = new MP3Formatter();
-    static MP3ToWavConverterJlayer mp3ToWavConverterJlayer = new MP3ToWavConverterJlayer();
+    static Mp3ToWavConverterJlayer mp3ToWavConverterJlayer = new Mp3ToWavConverterJlayer();
     static DecoderDemo decoderDemo = new DecoderDemo();
     @Test
     void mustRerurnTextOfSpeech() throws JavaLayerException {
@@ -15,5 +15,4 @@ class LevitanTest {
         mp3ToWavConverterJlayer.convertMp3ToWav();
         decoderDemo.decodeWav();
     }
-
 }

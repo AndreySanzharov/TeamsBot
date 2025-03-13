@@ -1,11 +1,8 @@
 package org.example;
 
-import javazoom.jl.decoder.JavaLayerException;
 import org.example.Audio.AacToWav;
 import org.example.Audio.DecoderDemo;
-import org.example.Audio.MP3Formatter;
-import org.example.Audio.MP3ToWavConverterJlayer;
-import org.example.FileDownloader.URLFileDownloader;
+import org.example.Download.URLFileDownloader;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
 import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
@@ -23,17 +20,20 @@ import java.util.List;
 
 public class Main {
 
-    //private static final String token = "001.3509189690.2901436216:1000000011";
-    private static final String token = "001.1031916963.1477955322:1000000106";
-    //private static final BotApiClient client = new BotApiClient("https://api.vkteams-test.ext.lukoil.com", token, 0, 60);
-    private static final BotApiClient client = new BotApiClient("https://api.vkteams.ext.lukoil.com/", token, 0, 60);
+    private static final String token = "001.3509189690.2901436216:1000000011";
+    //    private static final String token = "001.1031916963.1477955322:1000000106";
+    private static final BotApiClient client = new BotApiClient("https://api.vkteams-test.ext.lukoil.com", token, 0, 60);
+    //    private static final BotApiClient client = new BotApiClient("https://api.vkteams.ext.lukoil.com/", token, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
+
+
     private static final String SAVE_PATH = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\";
 
 
     private static final URLFileDownloader urlFileDownloader = new URLFileDownloader();
     private static final DecoderDemo decoderDemo = new DecoderDemo();
     private static AacToWav aacToWav = new AacToWav();
+
     private static String chatId = "";
     private static Long messageId;
 
@@ -89,16 +89,6 @@ public class Main {
         });
     }
 
-    static void getMessageLogs(NewMessageEvent newMessage) {
-        System.out.println("=========================");
-        System.out.println("chat Id: " + newMessage.getChat().getChatId());
-        System.out.println("message id: " + newMessage.getMessageId());
-        System.out.println("text: " + newMessage.getText());
-        System.out.println("chat: " + newMessage.getChat());
-        System.out.println("from: " + newMessage.getFrom());
-        System.out.println("parts: " + newMessage.getParts());
-        System.out.println("------------------------");
-    }
 
     static void sendMenu(NewMessageEvent newMessage) throws IOException {
         if (newMessage.getText().equals("Меню")) {
@@ -112,7 +102,7 @@ public class Main {
     }
 
     static void handleFile(NewMessageEvent newMessageEvent) {
-        final String baseUrl = "https://api.vkteams.ext.lukoil.com/bot/v1/files/getInfo/?token=001.1031916963.1477955322:1000000106&fileId=";
+        final String baseUrl = "https://api.vkteams.ext.lukoil.com/bot/v1/files/getInfo/?token=" + token + "&fileId=";
         File filePart = null;
         Voice voicePart = null;
         String tokenFile = "";
@@ -132,13 +122,21 @@ public class Main {
             String fileUrl = baseUrl + tokenFile;
             System.out.println("full url: " + fileUrl);
             //urlFileDownloader.setFilename("input.mp3");
-            urlFileDownloader.setFilename("input.aac");
+            urlFileDownloader.setFilename("input.mp3");
             urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
             aacToWav.convert();
             decoderDemo.decodeWav();
-
         }
+    }
 
-
+    private static void getMessageLogs(NewMessageEvent newMessage) {
+        System.out.println("=========================");
+        System.out.println("chat Id: " + newMessage.getChat().getChatId());
+        System.out.println("message id: " + newMessage.getMessageId());
+        System.out.println("text: " + newMessage.getText());
+        System.out.println("chat: " + newMessage.getChat());
+        System.out.println("from: " + newMessage.getFrom());
+        System.out.println("parts: " + newMessage.getParts());
+        System.out.println("------------------------");
     }
 }

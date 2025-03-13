@@ -1,4 +1,4 @@
-package org.example.FileDownloader;
+package org.example.Download;
 
 
 public class GsonFileObject {

@@ -33,7 +33,7 @@ public class AacToWav {
             }
         }
         catch (Exception e) {
-            System.out.println("Приехали в конец файла: " + e.getMessage());
+            System.out.println("Дошли в конец файла: " + e.getMessage());
         }
         finally {
             if (wav != null) {
