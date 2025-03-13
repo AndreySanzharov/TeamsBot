@@ -89,7 +89,6 @@ public class Main {
         });
     }
 
-
     static void sendMenu(NewMessageEvent newMessage) throws IOException {
         if (newMessage.getText().equals("Меню")) {
             List<List<InlineKeyboardButton>> buttonList = new ArrayList<>();

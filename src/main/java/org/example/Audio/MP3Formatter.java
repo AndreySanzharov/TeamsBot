@@ -38,8 +38,6 @@ public class MP3Formatter {
             e.getStackTrace();
         }
     }
-
-
 //    public static void main(String[] args) {
 //        Logger root = Logger.getRootLogger();
 //        root.addAppender(new ConsoleAppender(new PatternLayout("%r [%t] %p %c %x - %m%n")));
@@ -65,5 +63,4 @@ public class MP3Formatter {
 //        }
 //    }
 //}
-
 }
