@@ -111,4 +111,32 @@ public class Main {
         System.out.println("parts: " + newMessage.getParts());
         System.out.println("------------------------");
     }
+
+        static void handleFile(NewMessageEvent newMessageEvent) {
+        final String baseUrl = "https://api.vkteams.ext.lukoil.com/bot/v1/files/getInfo/?token=" + token + "&fileId=";
+        File filePart = null;
+        Voice voicePart = null;
+        String tokenFile = "";
+        try {
+            filePart = (File) newMessageEvent.getParts().getFirst();
+            tokenFile = filePart.getFileId();
+            System.out.println("token: " + tokenFile);
+            String fileUrl = baseUrl + tokenFile;
+            System.out.println("full url: " + fileUrl);
+            urlFileDownloader.setFilename("inputFile.txt");
+            urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
+
+        } catch (Exception exception) {
+            voicePart = (Voice) newMessageEvent.getParts().getFirst();
+            tokenFile = voicePart.getFileId();
+            System.out.println("token: " + tokenFile);
+            String fileUrl = baseUrl + tokenFile;
+            System.out.println("full url: " + fileUrl);
+            //urlFileDownloader.setFilename("input.mp3");
+            urlFileDownloader.setFilename("input.mp3");
+            urlFileDownloader.downloadFile(urlFileDownloader.getGson(fileUrl), SAVE_PATH);
+            aacToWav.convert();
+            decoderDemo.decodeWav();
+        }
+    }
 }
