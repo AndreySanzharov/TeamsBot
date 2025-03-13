@@ -9,6 +9,15 @@ import java.util.Map;
 
 public class JsonReader {
     public static void main(String[] args) {
+       readJson();
+
+    }
+
+    public static void makeDialog(){
+
+    }
+
+    private static void readJson(){
         try {
             // create Gson instance
             Gson gson = new Gson();
@@ -31,5 +40,4 @@ public class JsonReader {
             ex.printStackTrace();
         }
     }
-
 }
