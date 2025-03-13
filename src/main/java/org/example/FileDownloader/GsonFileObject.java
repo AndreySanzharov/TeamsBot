@@ -1,4 +1,4 @@
-package org.example.Downloaders;
+package org.example.FileDownloader;
 
 
 public class GsonFileObject {
@@ -17,7 +17,6 @@ public class GsonFileObject {
     public String getUrl() {
         return url;
     }
-
 
     public String getType() {
         return type;

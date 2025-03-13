@@ -96,6 +96,12 @@
         </dependency>
 
         <dependency>
+            <groupId>de.sfuhrm</groupId>
+            <artifactId>jaad</artifactId>
+            <version>0.8.7</version>
+        </dependency>
+
+        <dependency>
             <groupId>ws.schild</groupId>
             <artifactId>jave-all-deps</artifactId>
             <version>3.0.1</version>

@@ -36,7 +36,6 @@ public class DecoderDemo {
             throw new RuntimeException(e);
         }
     }
-
     //    public static void main(String[] argv) throws IOException, UnsupportedAudioFileException {
 //        LibVosk.setLogLevel(LogLevel.DEBUG);
 //        String uri = "C:\\Users\\sanzharovaa\\IdeaProjects\\bot\\src\\main\\java\\org\\example\\saveDir\\output.wav";

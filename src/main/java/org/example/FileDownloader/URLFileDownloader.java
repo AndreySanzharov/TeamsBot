@@ -1,4 +1,4 @@
-package org.example.Downloaders;
+package org.example.FileDownloader;
 
 import com.google.gson.Gson;
 
