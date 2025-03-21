@@ -20,14 +20,16 @@ public class QuestionnaireBot_II {
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
-    private static final Map<String, JSONObject> userStates = new ConcurrentHashMap<>(); // Храним состояние опроса для каждого пользователя
-    private static final Map<String, Map<String, String>> userResponses = new ConcurrentHashMap<>(); // Храним ответы пользователей
+    public static final Map<String, JSONObject> userStates = new ConcurrentHashMap<>(); // Храним состояние опроса для каждого пользователя
+    public static final Map<String, Map<String, String>> userResponses = new ConcurrentHashMap<>(); // Храним ответы пользователей
 
     public static void main(String[] args) throws IOException {
         client.addOnEventFetchListener(events -> {
             for (Event event : events) {
                 if (event instanceof NewMessageEvent) {
+                    getMessageLogs((NewMessageEvent) event);
                     handleUserResponse((NewMessageEvent) event);
+
                 }
             }
         });
@@ -37,7 +39,7 @@ public class QuestionnaireBot_II {
     /**
      * Обрабатывает ответ пользователя и отправляет следующий вопрос
      */
-    private static void handleUserResponse(NewMessageEvent event) {
+    public static void handleUserResponse(NewMessageEvent event) {
         String chatId = event.getChat().getChatId();
         String userMessage = event.getText().trim().toLowerCase();
 
@@ -102,7 +104,7 @@ public class QuestionnaireBot_II {
     private static void sendQuestion(String chatId, JSONObject questionNode) {
         String question = getFirstKey(questionNode);
         JSONObject answers = questionNode.getJSONObject(question);
-        sendMessage(chatId, question + "\nОтветы: " + String.join(" / ", answers.keySet()));
+        sendMessage(chatId, question + "\nВозможные ответы: " + String.join(" / ", answers.keySet()));
     }
 
     /**
@@ -127,4 +129,16 @@ public class QuestionnaireBot_II {
             responses.forEach((question, answer) -> System.out.println(question + " -> " + answer));
         }
     }
+
+
+    private static void getMessageLogs(NewMessageEvent newMessage) {
+        System.out.println("=========================");
+        System.out.println("chat Id: " + newMessage.getChat().getChatId());
+        System.out.println("message id: " + newMessage.getMessageId());
+        System.out.println("text: " + newMessage.getText());
+        System.out.println("chat: " + newMessage.getChat());
+        System.out.println("from: " + newMessage.getFrom());
+        System.out.println("------------------------");
+    }
+
 }
