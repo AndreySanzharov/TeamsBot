@@ -29,6 +29,7 @@ public class QuestionnaireBot {
             for (Event event : events) {
                 if (event instanceof NewMessageEvent) {
                     NewMessageEvent newMessage = (NewMessageEvent) event;
+                    getMessageLogs((NewMessageEvent) event);
                     handleUserResponse(newMessage);
                 }
             }
@@ -109,7 +110,10 @@ public class QuestionnaireBot {
     }
 
     private static void printUserResponse(String chatId){
+        System.out.println("*************************************");
         System.out.println("Ответы пользователя (" + chatId + "):");
+
+
 
         Map<String, String> responses = userResponses.get(chatId);
 
@@ -117,7 +121,18 @@ public class QuestionnaireBot {
             for (Map.Entry<String, String> entry : responses.entrySet()){
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
+            System.out.println("*************************************");
         }
+    }
+
+    private static void getMessageLogs(NewMessageEvent newMessage) {
+        System.out.println("=========================");
+        System.out.println("chat Id: " + newMessage.getChat().getChatId());
+        System.out.println("message id: " + newMessage.getMessageId());
+        System.out.println("text: " + newMessage.getText());
+        System.out.println("chat: " + newMessage.getChat());
+        System.out.println("from: " + newMessage.getFrom());
+        System.out.println("------------------------");
     }
 
 }
