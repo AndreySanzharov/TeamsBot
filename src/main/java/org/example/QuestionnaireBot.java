@@ -113,14 +113,14 @@ public class QuestionnaireBot {
         System.out.println("*************************************");
         System.out.println("Ответы пользователя (" + chatId + "):");
 
-
-
         Map<String, String> responses = userResponses.get(chatId);
 
         if(responses != null){
             for (Map.Entry<String, String> entry : responses.entrySet()){
                 System.out.println(entry.getKey() + " -> " + entry.getValue());
             }
+            sendMessage(chatId, userResponses.toString());
+            userResponses.remove(chatId);
             System.out.println("*************************************");
         }
     }
