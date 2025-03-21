@@ -21,6 +21,7 @@ public class QuestionnaireBot {
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
     private static final Map<String, JSONObject> userStates = new HashMap<>(); // Состояние каждого пользователя
+    private static final Map<String, Map<String, String>> userResponses = new HashMap<>(); // Состояние каждого пользователя
 
     public static void main(String[] args) throws IOException {
         client.addOnEventFetchListener(events -> {
@@ -45,6 +46,7 @@ public class QuestionnaireBot {
             // Если пользователь новый — начинаем опрос
             try {
                 JSONObject jsonRoot = loadJson(JSON_PATH);
+                userResponses.put(chatId, new HashMap<>()); // новая мапа для пользователя
                 userStates.put(chatId, jsonRoot);
                 sendQuestion(chatId, jsonRoot);
             } catch (FileNotFoundException e) {
@@ -63,11 +65,15 @@ public class QuestionnaireBot {
             return;
         }
 
+        userResponses.get(chatId).put(currentQuestion, userMessage);
+
         Object next = possibleAnswers.get(userMessage);
 
         if (next instanceof String) {
             sendMessage(chatId, (String) next);
+            printUserResponse(chatId);
             userStates.remove(chatId); // Завершаем опрос
+            userResponses.remove(chatId);
         } else {
             userStates.put(chatId, (JSONObject) next);
             sendQuestion(chatId, (JSONObject) next);
@@ -100,4 +106,17 @@ public class QuestionnaireBot {
             e.printStackTrace();
         }
     }
+
+    private static void printUserResponse(String chatId){
+        System.out.println("Ответы пользователя (" + chatId + "):");
+
+        Map<String, String> responses = userResponses.get(chatId);
+
+        if(responses != null){
+            for (Map.Entry<String, String> entry : responses.entrySet()){
+                System.out.println(entry.getKey() + " -> " + entry.getValue());
+            }
+        }
+    }
+
 }
