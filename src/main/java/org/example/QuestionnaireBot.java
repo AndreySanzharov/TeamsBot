@@ -13,6 +13,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestionnaireBot {
     private static final String token = "001.3509189690.2901436216:1000000011";
@@ -20,8 +21,8 @@ public class QuestionnaireBot {
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
-    private static final Map<String, JSONObject> userStates = new HashMap<>(); // Состояние каждого пользователя
-    private static final Map<String, Map<String, String>> userResponses = new HashMap<>(); // Состояние каждого пользователя
+    private static final Map<String, JSONObject> userStates =  new ConcurrentHashMap<>();; // Состояние каждого пользователя
+    private static final Map<String, Map<String, String>> userResponses =  new ConcurrentHashMap<>();; // Состояние каждого пользователя
 
     public static void main(String[] args) throws IOException {
         client.addOnEventFetchListener(events -> {
