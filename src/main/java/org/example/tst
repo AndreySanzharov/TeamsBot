@@ -11,8 +11,8 @@ import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestionnaireBot {
     private static final String token = "";
@@ -20,15 +20,14 @@ public class QuestionnaireBot {
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
-    private static final Map<String, JSONObject> userStates = new HashMap<>(); // Состояние каждого пользователя
-    private static final Map<String, Map<String, String>> userResponses = new HashMap<>(); // Состояние каждого пользователя
+    private static final Map<String, JSONObject> userStates = new ConcurrentHashMap<>(); // Храним состояние опроса для каждого пользователя
+    private static final Map<String, Map<String, String>> userResponses = new ConcurrentHashMap<>(); // Храним ответы пользователей
 
     public static void main(String[] args) throws IOException {
         client.addOnEventFetchListener(events -> {
             for (Event event : events) {
                 if (event instanceof NewMessageEvent) {
-                    NewMessageEvent newMessage = (NewMessageEvent) event;
-                    handleUserResponse(newMessage);
+                    handleUserResponse((NewMessageEvent) event);
                 }
             }
         });
@@ -43,21 +42,12 @@ public class QuestionnaireBot {
         String userMessage = event.getText().trim().toLowerCase();
 
         if (!userStates.containsKey(chatId)) {
-            // Если пользователь новый — начинаем опрос
-            try {
-                JSONObject jsonRoot = loadJson(JSON_PATH);
-                userResponses.put(chatId, new HashMap<>()); // новая мапа для пользователя
-                userStates.put(chatId, jsonRoot);
-                sendQuestion(chatId, jsonRoot);
-            } catch (FileNotFoundException e) {
-                sendMessage(chatId, "Ошибка: JSON-файл не найден!");
-            }
+            startNewSurvey(chatId);
             return;
         }
 
-        // Получаем текущий узел JSON
         JSONObject currentNode = userStates.get(chatId);
-        String currentQuestion = currentNode.keys().next();
+        String currentQuestion = getFirstKey(currentNode);
         JSONObject possibleAnswers = currentNode.getJSONObject(currentQuestion);
 
         if (!possibleAnswers.has(userMessage)) {
@@ -66,17 +56,29 @@ public class QuestionnaireBot {
         }
 
         userResponses.get(chatId).put(currentQuestion, userMessage);
-
         Object next = possibleAnswers.get(userMessage);
 
         if (next instanceof String) {
             sendMessage(chatId, (String) next);
-            printUserResponse(chatId);
-            userStates.remove(chatId); // Завершаем опрос
-            userResponses.remove(chatId);
+            printUserResponses(chatId);
+            userResponses.remove(chatId); // Удаляем только ответы, но оставляем userStates
         } else {
             userStates.put(chatId, (JSONObject) next);
             sendQuestion(chatId, (JSONObject) next);
+        }
+    }
+
+    /**
+     * Запускает новый опрос для пользователя
+     */
+    private static void startNewSurvey(String chatId) {
+        try {
+            JSONObject jsonRoot = loadJson(JSON_PATH);
+            userResponses.put(chatId, new ConcurrentHashMap<>()); // создаем мапу ответов для пользователя
+            userStates.put(chatId, jsonRoot);
+            sendQuestion(chatId, jsonRoot);
+        } catch (FileNotFoundException e) {
+            sendMessage(chatId, "Ошибка: JSON-файл не найден!");
         }
     }
 
@@ -88,10 +90,17 @@ public class QuestionnaireBot {
     }
 
     /**
+     * Получает первый ключ JSON-объекта (название текущего вопроса)
+     */
+    private static String getFirstKey(JSONObject jsonObject) {
+        return jsonObject.keys().next();
+    }
+
+    /**
      * Отправляет пользователю вопрос
      */
     private static void sendQuestion(String chatId, JSONObject questionNode) {
-        String question = questionNode.keys().next();
+        String question = getFirstKey(questionNode);
         JSONObject answers = questionNode.getJSONObject(question);
         sendMessage(chatId, question + "\nОтветы: " + String.join(" / ", answers.keySet()));
     }
@@ -101,22 +110,21 @@ public class QuestionnaireBot {
      */
     private static void sendMessage(String chatId, String text) {
         try {
-           controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
+            controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private static void printUserResponse(String chatId){
+    /**
+     * Выводит в консоль ответы пользователя
+     */
+    private static void printUserResponses(String chatId) {
         System.out.println("Ответы пользователя (" + chatId + "):");
 
         Map<String, String> responses = userResponses.get(chatId);
-
-        if(responses != null){
-            for (Map.Entry<String, String> entry : responses.entrySet()){
-                System.out.println(entry.getKey() + " -> " + entry.getValue());
-            }
+        if (responses != null) {
+            responses.forEach((question, answer) -> System.out.println(question + " -> " + answer));
         }
     }
-
 }
