@@ -1,0 +1,104 @@
+package org.example.JsonHandlers;
+
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import ru.mail.im.botapi.api.entity.SendTextRequest;
+import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
+import ru.mail.im.botapi.response.ApiResponse;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class QuestionnaireBot {
+    private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
+
+    // Храним ответы пользователей (chatId -> (вопрос -> ответ))
+    private static final Map<String, Map<String, String>> userResponses = new ConcurrentHashMap<>();
+
+    // Храним текущие вопросы пользователей (chatId -> текущий вопрос)
+    private static final Map<String, JSONObject> userSessions = new ConcurrentHashMap<>();
+
+    public static void main(String[] args) throws IOException {
+        JSONObject jsonRoot = loadJson(JSON_PATH);
+        System.out.println("Бот запущен...");
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("Введите chatId пользователя:");
+            String chatId = scanner.nextLine().trim();
+
+            if (!userSessions.containsKey(chatId)) {
+                userSessions.put(chatId, jsonRoot);
+                userResponses.put(chatId, new ConcurrentHashMap<>());
+            }
+
+            runQuestionnaire(chatId);
+        }
+    }
+
+    /**
+     * Загружает JSON-файл.
+     */
+    private static JSONObject loadJson(String filePath) throws FileNotFoundException {
+        return new JSONObject(new JSONTokener(new FileInputStream(filePath)));
+    }
+
+    /**
+     * Запускает опрос для конкретного пользователя.
+     */
+    private static void runQuestionnaire(String chatId) {
+        JSONObject currentNode = userSessions.get(chatId);
+        Scanner scanner = new Scanner(System.in);
+
+        while (currentNode != null) {
+            // Получаем текущий вопрос
+            String question = currentNode.keys().next();
+            System.out.println("Пользователь (" + chatId + "): " + question);
+
+            JSONObject possibleAnswers = currentNode.getJSONObject(question);
+            printPossibleAnswers(possibleAnswers);
+
+            String userAnswer;
+            while (true) {
+                userAnswer = scanner.nextLine().trim().toLowerCase();
+
+                if (possibleAnswers.has(userAnswer)) {
+                    userResponses.get(chatId).put(question, userAnswer);
+                    break;
+                }
+                System.out.println("Ответ не распознан. Попробуйте еще раз.");
+            }
+
+            Object next = possibleAnswers.get(userAnswer);
+
+            if (next instanceof String) {
+                System.out.println("Результат для " + chatId + ": " + next);
+                printUserResponses(chatId);
+                userSessions.remove(chatId); // Завершаем сессию
+                return;
+            }
+
+            currentNode = (JSONObject) next;
+            userSessions.put(chatId, currentNode);
+        }
+    }
+
+    /**
+     * Выводит возможные ответы на текущий вопрос.
+     */
+    private static void printPossibleAnswers(JSONObject possibleAnswers) {
+        System.out.println("Возможные ответы: " + String.join(" \\ ", possibleAnswers.keySet()));
+    }
+
+    /**
+     * Выводит ответы пользователя.
+     */
+    private static void printUserResponses(String chatId) {
+        System.out.println("Ответы пользователя (" + chatId + "):");
+        userResponses.get(chatId).forEach((q, a) -> System.out.println(q + " -> " + a));
+    }
+}
