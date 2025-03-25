@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class QuestionnaireBot {
-    private static final String token = "001.3509189690.2901436216:1000000011";
-    private static final BotApiClient client = new BotApiClient("https://api.vkteams-test.ext.lukoil.com", token, 0, 60);
+    private static final String token = "";
+    private static final BotApiClient client = new BotApiClient("", token, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
