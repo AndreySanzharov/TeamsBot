@@ -17,8 +17,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MenuBot {
-    private static final String token = "";
-    private static final BotApiClient client = new BotApiClient("", token, 0, 60);
+    private static final String token = "001.1031916963.1477955322:1000000106";
+    private static final BotApiClient client = new BotApiClient("https://api.vkteams.ext.lukoil.com/", token, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
@@ -32,7 +32,11 @@ public class MenuBot {
                     NewMessageEvent newMessage = (NewMessageEvent) event;
                     handleUserResponse(newMessage);
                 } else if (event instanceof CallbackQueryEvent) {
-                    handleCallback((CallbackQueryEvent) event);
+                    try {
+                        handleCallback((CallbackQueryEvent) event);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
         });
@@ -53,8 +57,9 @@ public class MenuBot {
         }
     }
 
-    private static void handleCallback(CallbackQueryEvent event) {
+    private static void handleCallback(CallbackQueryEvent event) throws IOException {
         String chatId = event.getFrom().getUserId();
+        String queryID = event.getQueryId();
         String callbackData = event.getCallbackData();
         JSONObject currentNode = userStates.get(chatId);
 
@@ -77,6 +82,7 @@ public class MenuBot {
                 }
             }
         }
+        client.messages().answerCallbackQuery(queryID, "", false, "");
     }
 
     private static JSONObject loadJson(String filePath) throws FileNotFoundException {

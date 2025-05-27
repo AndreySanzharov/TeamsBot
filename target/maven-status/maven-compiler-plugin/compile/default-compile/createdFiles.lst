@@ -1,0 +1,11 @@
+org\example\Audio\DecoderDemo.class
+org\example\Audio\VoskFileRecognizer.class
+org\example\MenuBot.class
+org\example\Main.class
+org\example\QuestionnaireBot.class
+org\example\Download\GsonFileObject.class
+org\example\Download\URLFileDownloader.class
+org\example\Audio\MP3Formatter.class
+org\example\Audio\Mp3ToWavConverterJlayer.class
+org\example\Audio\AacToWav.class
+org\example\JsonHandlers\QuestionnaireApp.class

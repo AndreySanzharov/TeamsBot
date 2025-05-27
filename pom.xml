@@ -83,19 +83,6 @@
             <version>4.4.0</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
             <groupId>de.sfuhrm</groupId>
             <artifactId>jaad</artifactId>
             <version>0.8.7</version>
@@ -106,6 +93,8 @@
             <artifactId>jave-all-deps</artifactId>
             <version>3.0.1</version>
         </dependency>
+
+
 
     </dependencies>
 
