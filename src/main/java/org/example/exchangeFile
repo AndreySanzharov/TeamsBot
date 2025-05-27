@@ -1,124 +1,158 @@
 package org.example;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONTokener;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
-import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
 import ru.mail.im.botapi.api.entity.SendTextRequest;
+import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
 import ru.mail.im.botapi.fetcher.event.CallbackQueryEvent;
 import ru.mail.im.botapi.fetcher.event.Event;
 import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class MenuBot {
-    private static final Logger logger = Logger.getLogger(MenuBot.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(MenuBot.class);
 
-    private static final String token = "";
-    private static final BotApiClient client = new BotApiClient("", token, 0, 60);
+    private static final String TOKEN = ""; // Укажите токен
+    private static final BotApiClient client = new BotApiClient("", TOKEN, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
-    private static final String JSON_PATH = "src/main/java/org/example/JsonHandlers/questions.json";
 
-    // Хранение текущей позиции пользователя в JSON-дереве
-    private static final Map<String, JSONObject> userStates = new ConcurrentHashMap<>();
+    private static final UserStateService userStateService = new UserStateService();
+    private static final JsonService jsonService = new JsonService("src/main/java/org/example/JsonHandlers/questions.json");
+    private static final SendService sendService = new SendService(client, controller);
 
     public static void main(String[] args) throws IOException {
-        client.addOnEventFetchListener(events -> {
-            for (Event event : events) {
-                if (event instanceof NewMessageEvent newMessage) {
-                    handleNewMessage(newMessage);
-                } else if (event instanceof CallbackQueryEvent callbackEvent) {
-                    handleCallback(callbackEvent);
-                }
-            }
-        });
+        client.addOnEventFetchListener(events -> events.forEach(MenuBot::handleEvent));
         client.start();
     }
 
-    private static void handleNewMessage(NewMessageEvent event) {
-        String chatId = event.getChat().getChatId();
-        if (!userStates.containsKey(chatId)) {
-            try {
-                JSONObject rootJson = loadJson(JSON_PATH);
-                JSONObject firstNode = rootJson.getJSONObject("root");
-                userStates.put(chatId, firstNode);
-                processJsonNode(chatId, firstNode);
-            } catch (FileNotFoundException e) {
-                logger.log(Level.SEVERE, "JSON файл не найден", e);
-                sendMessage(chatId, "Ошибка: файл данных не найден.");
+    public static void handleEvent(Event event) {
+        String chatId;
+        switch (event) {
+            case NewMessageEvent newMessage -> {
+                chatId = newMessage.getChat().getChatId();
+                log.info("Получено новое сообщение от пользователя: {}", chatId);
+
+                userStateService.resetUserState(chatId);
+                JsonNode root = jsonService.loadJson();
+                userStateService.setUserState(chatId, root);
+                sendService.sendQuestionWithButtons(chatId, root);
             }
-        }
-    }
+            case CallbackQueryEvent callback -> {
+                chatId = callback.getFrom().getUserId();
+                String data = callback.getCallbackData();
+                log.info("Обработка callback от пользователя {}: {}", chatId, data);
 
-    private static void handleCallback(CallbackQueryEvent event) {
-        String chatId = event.getFrom().getUserId();
-        String callbackData = event.getCallbackData();
-        JSONObject currentNode = userStates.get(chatId);
+                JsonNode currentNode = userStateService.getUserState(chatId);
+                if (currentNode == null) {
+                    log.warn("Пустое состояние у пользователя {}", chatId);
+                    return;
+                }
 
-        if (currentNode != null && currentNode.has("options")) {
-            JSONArray options = currentNode.getJSONArray("options");
-            for (int i = 0; i < options.length(); i++) {
-                JSONObject option = options.getJSONObject(i);
-                if (callbackData.equals(option.getString("label"))) {
-                    // Если вложенность есть, проваливаемся
-                    if (option.has("next")) {
-                        JSONObject nextNode = option.getJSONObject("next");
-                        userStates.put(chatId, nextNode);
-                        processJsonNode(chatId, nextNode);
-                    } else if (option.has("text")) {
-                        // Если есть просто текст — выводим
-                        sendMessage(chatId, option.getString("text"));
-                        userStates.remove(chatId);
-                    } else {
-                        sendMessage(chatId, "Нет данных для следующего действия.");
+                JsonNode options = currentNode.get("options");
+                if (options == null || !options.isArray()) {
+                    log.warn("Некорректные опции в JSON у пользователя {}", chatId);
+                    return;
+                }
+
+                for (JsonNode option : options) {
+                    if (option.has("text") && data.equals(option.get("text").asText())) {
+                        if (option.has("next")) {
+                            JsonNode next = option.get("next");
+                            userStateService.setUserState(chatId, next);
+                            sendService.sendQuestionWithButtons(chatId, next);
+                        } else if (option.has("message")) {
+                            String message = option.get("message").asText();
+                            sendService.sendText(chatId, message);
+                            userStateService.resetUserState(chatId);
+                        } else {
+                            sendService.sendText(chatId, "Вы выбрали: " + data);
+                            userStateService.resetUserState(chatId);
+                        }
+                        break;
                     }
-                    break;
                 }
             }
+            default -> log.warn("Необработанный тип события: {}", event.getClass().getSimpleName());
         }
     }
+}
 
-    private static JSONObject loadJson(String path) throws FileNotFoundException {
-        return new JSONObject(new JSONTokener(new FileInputStream(path)));
+class UserStateService {
+    private final Map<String, JsonNode> userStates = new HashMap<>();
+
+    public void setUserState(String chatId, JsonNode node) {
+        userStates.put(chatId, node);
     }
 
-    private static void processJsonNode(String chatId, JSONObject node) {
-        String description = node.optString("description", "Выберите вариант:");
-        JSONArray options = node.optJSONArray("options");
-
-        if (options != null) {
-            List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
-            for (int i = 0; i < options.length(); i++) {
-                JSONObject option = options.getJSONObject(i);
-                if (option.has("tag") && option.getString("tag").equals("button")) {
-                    String label = option.getString("label");
-                    buttons.add(Collections.singletonList(
-                            InlineKeyboardButton.callbackButton(label, label, "primary")));
-                }
-            }
-            try {
-                client.messages().sendText(chatId, description, null, null, null, null, null, buttons);
-            } catch (IOException e) {
-                logger.log(Level.SEVERE, "Ошибка отправки сообщения", e);
-            }
-        } else {
-            sendMessage(chatId, description);
-        }
+    public JsonNode getUserState(String chatId) {
+        return userStates.get(chatId);
     }
 
-    private static void sendMessage(String chatId, String text) {
-        try {
-            controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
+    public void resetUserState(String chatId) {
+        userStates.remove(chatId);
+    }
+}
+
+class JsonService {
+    private final String filePath;
+
+    public JsonService(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public JsonNode loadJson() {
+        try (var inputStream = new java.io.FileInputStream(filePath)) {
+            return new com.fasterxml.jackson.databind.ObjectMapper().readTree(inputStream);
         } catch (IOException e) {
-            logger.log(Level.SEVERE, "Ошибка отправки текста", e);
+            throw new RuntimeException("Ошибка загрузки JSON файла", e);
+        }
+    }
+}
+
+class SendService {
+    private final BotApiClient client;
+    private final BotApiClientController controller;
+
+    public SendService(BotApiClient client, BotApiClientController controller) {
+        this.client = client;
+        this.controller = controller;
+    }
+
+    public void sendQuestionWithButtons(String chatId, JsonNode node) {
+        if (node == null || !node.has("description")) return;
+
+        String question = node.get("description").asText();
+        List<List<InlineKeyboardButton>> keyboard = new ArrayList<>();
+
+        JsonNode options = node.get("options");
+        if (options != null && options.isArray()) {
+            for (JsonNode option : options) {
+                if (option.has("text")) {
+                    String text = option.get("text").asText();
+                    keyboard.add(Collections.singletonList(
+                        InlineKeyboardButton.callbackButton(text, text, "primary")
+                    ));
+                }
+            }
+        }
+
+        try {
+            client.messages().sendText(chatId, question, null, null, null, null, null, keyboard);
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка при отправке сообщения", e);
+        }
+    }
+
+    public void sendText(String chatId, String message) {
+        try {
+            controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(message));
+        } catch (IOException e) {
+            throw new RuntimeException("Ошибка при отправке текста", e);
         }
     }
 }
