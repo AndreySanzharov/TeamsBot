@@ -7,20 +7,41 @@
       "next": {
         "description": "Что у Вас случилось?",
         "options": [
-          { "text": "Не работает телефон", "tag": "button" },
-          { "text": "Сбросить пароль учетной записи в домене", "tag": "button" },
-          { "text": "Не работает электронная почта", "tag": "button" },
-          { "text": "Не включается ПК", "tag": "button" },
-          { "text": "Заблокирована учетная запись", "tag": "button" },
-          { "text": "Другое", "tag": "button" }
+          {
+            "text": "Не работает телефон",
+            "tag": "button"
+          },
+          {
+            "text": "Сбросить пароль учетной записи в домене",
+            "tag": "button"
+          },
+          {
+            "text": "Не работает электронная почта",
+            "tag": "button"
+          }
         ]
       }
     },
+
     {
       "text": "Узнать статус обращений",
-      "tag": "button",
+      "tag":"button",
       "next": {
-        "description": "Введите номер обращения или ФИО"
+        "description": "Заглушка",
+        "options": [
+          {
+            "text": "GGG",
+            "tag": "button",
+            "next": {
+              "options": [
+                {
+                  "text": "FFF",
+                  "tag": "button"
+                }
+              ]
+            }
+          }
+        ]
       }
     }
   ]
