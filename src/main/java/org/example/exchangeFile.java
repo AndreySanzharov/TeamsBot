@@ -3,6 +3,7 @@ package org.example;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
@@ -25,9 +26,15 @@ public class TagBot {
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
 
     private static final Map<String, JSONObject> userStates = new HashMap<>();
-    private static final Set<String> waitingForInputUsers = new HashSet<>();
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(TagBot.class);
+    private static final Map<String, String> userProblems = new HashMap<>(); // Хранит выбранную проблему для каждого пользователя
+    private static final Map<String, String> substituteUsers = new HashMap<>(); // Хранит ФИО подменного пользователя
 
+    private static final Set<String> waitingForInputUsernames = new HashSet<>();
+    private static final Set<String> waitingForInput = new HashSet<>();
+
+    private static final Logger log = LoggerFactory.getLogger(TagBot.class);
+
+    private static final Set<String> answers = new HashSet<>();
 
     public static void main(String[] args) {
         log.info("Бот запускается...");
@@ -39,9 +46,12 @@ public class TagBot {
         switch (event) {
             case NewMessageEvent message -> {
                 String chatId = message.getChat().getChatId();
+
                 log.info("Новое сообщение от пользователя: " + chatId + " = {" + message.getText() + "}");
                 try {
+                    handleMessageName(chatId, message);
                     handleMessage(chatId, message);
+
                     if (!userStates.containsKey(message.getChat().getChatId())) {
                         JSONObject root = loadJson();
                         userStates.put(chatId, root);
@@ -64,6 +74,11 @@ public class TagBot {
                     return;
                 }
 
+                // Сохраняем выбранную проблему, если это первый уровень меню
+                if (current.optString("description", "").equals("Что у Вас случилось?")) {
+                    userProblems.put(chatId, data);
+                }
+
                 JSONArray options = current.optJSONArray("options");
                 if (options == null) {
                     log.warn("Пустой список опций для пользователя: " + chatId);
@@ -79,6 +94,8 @@ public class TagBot {
                             userStates.put(chatId, next);
                             sendQuestionWithButtons(chatId, next);
                         } else {
+                            // Выводим статистику перед завершением
+                            sendStats(chatId);
                             sendText(chatId, "Вы выбрали: " + data);
                             userStates.remove(chatId);
                             log.info("Диалог завершен для пользователя: " + chatId);
@@ -92,13 +109,27 @@ public class TagBot {
                     log.error("Оибка подтверждения callback: " + e.getMessage());
                 }
             }
-
             default -> {
                 log.warn("Неизвестный тип события: " + event.getType());
                 throw new IllegalStateException("Неизвестное событие: " + event);
             }
         }
+    }
 
+    private static void sendStats(String chatId) {
+        String problem = userProblems.getOrDefault(chatId, "Не указана");
+        String substitute = substituteUsers.getOrDefault(chatId, null);
+        
+        String stats = "Статистика обращения:\n" +
+                      "Проблема: " + problem + "\n" +
+                      "Пользователь устройства: " + chatId + "\n" +
+                      "Подменный пользователь: " + (substitute != null ? substitute : "null");
+        
+        sendText(chatId, stats);
+        
+        // Очищаем данные
+        userProblems.remove(chatId);
+        substituteUsers.remove(chatId);
     }
 
     private static JSONObject loadJson() throws IOException {
@@ -115,17 +146,39 @@ public class TagBot {
         }
     }
 
-    public static void handleMessage(String chatId, Event message) throws IOException {
-        if (waitingForInputUsers.contains(chatId)) {
-            waitingForInputUsers.remove(chatId);
+    public static void handleMessageName(String chatId, Event message) throws IOException {
+        if (waitingForInputUsernames.contains(chatId)) {
+            waitingForInputUsernames.remove(chatId);
             String userInput = ((NewMessageEvent) message).getText();
-            log.info("Пользователь ввел текст: \"" + userInput + "\" | chatId: " + chatId);
+            log.info("Пользователь ввел имя сотрудника: \"" + userInput + "\" | chatId: " + chatId);
             sendText(chatId, "Вы ввели: " + userInput);
 
+            // Сохраняем ФИО подменного пользователя
+            substituteUsers.put(chatId, userInput);
+
+            JSONObject root = loadJson();
+            if (userInput.length() - userInput.replace(" ", "").length() > 1) {
+                userStates.put(chatId, root);
+                answers.add(userInput);
+                sendQuestionWithButtons(chatId, root);
+            } else {
+                log.error("ФИО не соответствует стандарту: требуется как минимум один пробел в строке");
+                sendText(chatId, "ФИО не соответствует стандарту: требуется как минимум один пробел в строке");
+                userStates.remove(chatId);
+            }
+        }
+    }
+
+    private static void handleMessage(String chatId, Event message) throws IOException {
+        if (waitingForInput.contains(chatId)) {
+            waitingForInput.remove(chatId);
+            String userInput = ((NewMessageEvent) message).getText();
+            log.info("Пользователь ввел текстовое сообщение: \"" + userInput + "\" | chatId: " + chatId);
+            sendText(chatId, "Вы ввели: " + userInput);
             JSONObject root = loadJson();
             userStates.put(chatId, root);
+            answers.add(userInput);
             sendQuestionWithButtons(chatId, root);
-            //return;
         }
     }
 
@@ -147,11 +200,18 @@ public class TagBot {
                                 InlineKeyboardButton.callbackButton(text, text, "primary")
                         ));
                     }
+                    case "messageName" -> {
+                        String text = option.optString("text");
+                        sendText(chatId, text);
+                        log.debug("Отправлено имя сотрудника (ФИО): " + text);
+                        waitingForInputUsernames.add(chatId);
+                    }
+
                     case "message" -> {
                         String text = option.optString("text");
                         sendText(chatId, text);
                         log.debug("Отправлено текстовое сообщение: " + text);
-                        waitingForInputUsers.add(chatId);
+                        waitingForInput.add(chatId);
                     }
 
                     case "stop" -> {
@@ -181,5 +241,4 @@ public class TagBot {
             log.error("Ошибка при отправке сообщения с кнпоками: " + e.getMessage());
         }
     }
-    
 }
