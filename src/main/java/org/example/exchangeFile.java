@@ -1,149 +1,130 @@
-// TagBotApplication.java
+package org.example.NewBot;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.mail.im.botapi.BotApiClient;
+import ru.mail.im.botapi.BotApiClientController;
+import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
+import ru.mail.im.botapi.api.entity.SendTextRequest;
+import ru.mail.im.botapi.fetcher.event.CallbackQueryEvent;
+import ru.mail.im.botapi.fetcher.event.Event;
+import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
-public class TagBotApplication {
-    private static final Logger log = LoggerFactory.getLogger(TagBotApplication.class);
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.*;
 
-    public static void main(String[] args) {
-        log.info("Запуск бота...");
-        BotService botService = new BotService();
-        botService.start();
-        log.info("Бот успешно запущен");
-    }
-}
-
-// BotService.java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class BotService {
-    private static final Logger log = LoggerFactory.getLogger(BotService.class);
+public class TagBot {
+    private static final Logger log = LoggerFactory.getLogger(TagBot.class);
     private static final String TOKEN = "001.1031916963.1477955322:1000000106";
     private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
+    private static final BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
+    private static final BotApiClientController controller = BotApiClientController.startBot(client);
+    private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\java\\org\\example\\JsonHandlers\\questions.json";
 
-    private final BotApiClient client;
-    private final BotApiClientController controller;
-    private final EventHandler eventHandler;
+    private static final Map<String, JSONObject> userStates = new HashMap<>();
+    private static final Set<String> waitingForInputUsers = new HashSet<>();
 
-    public BotService() {
-        this.client = new BotApiClient(HOST, TOKEN, 0, 60);
-        this.controller = BotApiClientController.startBot(client);
-        MessageService messageService = new MessageService(controller);
-        JsonFlowService jsonFlowService = new JsonFlowService(messageService);
-        this.eventHandler = new EventHandler(client, jsonFlowService, messageService);
-        log.info("BotService инициализирован");
-    }
-
-    public void start() {
-        log.info("Бот начинает прослушивать события");
-        client.addOnEventFetchListener(events -> events.forEach(eventHandler::handleEvent));
+    public static void main(String[] args) {
+        log.info("Бот запущен и готов к обработке событий.");
+        client.addOnEventFetchListener(events -> events.forEach(TagBot::handleEvent));
         client.start();
     }
-}
 
-// EventHandler.java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class EventHandler {
-    private static final Logger log = LoggerFactory.getLogger(EventHandler.class);
-
-    private final BotApiClient client;
-    private final JsonFlowService jsonFlowService;
-    private final MessageService messageService;
-
-    public EventHandler(BotApiClient client, JsonFlowService jsonFlowService, MessageService messageService) {
-        this.client = client;
-        this.jsonFlowService = jsonFlowService;
-        this.messageService = messageService;
-    }
-
-    public void handleEvent(Event event) {
-        log.debug("Обработка события: {}", event);
+    public static void handleEvent(Event event) {
         switch (event) {
-            case NewMessageEvent message -> jsonFlowService.handleMessage(message);
-            case CallbackQueryEvent callback -> jsonFlowService.handleCallback(callback);
+            case NewMessageEvent message -> {
+                String chatId = message.getChat().getChatId();
+                try {
+                    handleMessageName(chatId, message);
+                    if (!userStates.containsKey(chatId)) {
+                        JSONObject root = loadJson();
+                        userStates.put(chatId, root);
+                        sendQuestionWithButtons(chatId, root);
+                    }
+                } catch (Exception e) {
+                    log.error("Ошибка обработки нового сообщения", e);
+                    sendText(chatId, "Ошибка загрузки меню: " + e.getMessage());
+                }
+            }
+            case CallbackQueryEvent callback -> {
+                String chatId = callback.getFrom().getUserId();
+                String queryID = callback.getQueryId();
+                String data = callback.getCallbackData();
+                JSONObject current = userStates.get(chatId);
+                if (current == null) return;
+
+                JSONArray options = current.optJSONArray("options");
+                if (options == null) return;
+
+                for (int i = 0; i < options.length(); i++) {
+                    JSONObject option = options.getJSONObject(i);
+                    if (option.optString("text").equals(data)) {
+                        if (option.has("next")) {
+                            JSONObject next = option.getJSONObject("next");
+                            userStates.put(chatId, next);
+                            sendQuestionWithButtons(chatId, next);
+                        } else {
+                            sendText(chatId, "Вы выбрали: " + data);
+                            userStates.remove(chatId);
+                        }
+                        break;
+                    }
+                }
+                try {
+                    client.messages().answerCallbackQuery(queryID, "", false, "");
+                } catch (IOException e) {
+                    log.error("Ошибка при подтверждении callback-запроса", e);
+                    throw new RuntimeException(e);
+                }
+            }
             default -> {
-                log.error("Неизвестное событие: {}", event);
+                log.warn("Неизвестное событие: {}", event);
                 throw new IllegalStateException("Неизвестное событие: " + event);
             }
         }
     }
-}
 
-// JsonFlowService.java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class JsonFlowService {
-    private static final Logger log = LoggerFactory.getLogger(JsonFlowService.class);
-
-    private final MessageService messageService;
-    private final UserStateService stateService = new UserStateService();
-
-    public JsonFlowService(MessageService messageService) {
-        this.messageService = messageService;
-    }
-
-    public void handleMessage(NewMessageEvent message) {
-        String chatId = message.getChat().getChatId();
-        log.info("Получено сообщение от {}: {}", chatId, message.getText());
-
-        if (stateService.isWaitingForInput(chatId)) {
-            stateService.setWaitingForInput(chatId, false);
-            messageService.sendText(chatId, "Вы ввели: " + message.getText());
-            sendRootQuestion(chatId);
-        } else if (!stateService.hasState(chatId)) {
-            sendRootQuestion(chatId);
+    private static JSONObject loadJson() throws IOException {
+        try (FileInputStream fis = new FileInputStream(JSON_PATH)) {
+            return new JSONObject(new JSONTokener(fis));
         }
     }
 
-    public void handleCallback(CallbackQueryEvent callback) {
-        String chatId = callback.getFrom().getUserId();
-        String queryId = callback.getQueryId();
-        String data = callback.getCallbackData();
+    private static void sendText(String chatId, String text) {
+        try {
+            controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
+        } catch (IOException e) {
+            log.error("Ошибка при отправке текста в чат {}: {}", chatId, text, e);
+        }
+    }
 
-        log.info("Обработка callback от {}: {}", chatId, data);
+    public static void handleMessageName(String chatId, Event message) throws IOException {
+        if (waitingForInputUsers.contains(chatId)) {
+            waitingForInputUsers.remove(chatId);
+            String input = ((NewMessageEvent) message).getText();
 
-        JSONObject current = stateService.getState(chatId);
-        JSONArray options = current.optJSONArray("options");
-        if (options == null) return;
-
-        for (int i = 0; i < options.length(); i++) {
-            JSONObject option = options.getJSONObject(i);
-            if (data.equals(option.optString("text"))) {
-                if (option.has("next")) {
-                    JSONObject next = option.getJSONObject("next");
-                    stateService.setState(chatId, next);
-                    sendQuestionWithButtons(chatId, next);
-                } else {
-                    messageService.sendText(chatId, "Вы выбрали: " + data);
-                    stateService.clearState(chatId);
-                }
-                break;
+            long spaceCount = input.chars().filter(ch -> ch == ' ').count();
+            if (spaceCount != 2) {
+                log.info("Пользователь {} ввел имя с неверным количеством пробелов: '{}'", chatId, input);
+                sendText(chatId, "Ошибка: введите строку, содержащую ровно два пробела (пример: Имя Отчество Фамилия)");
+                waitingForInputUsers.add(chatId);
+                return;
             }
-        }
 
-        try {
-            client.messages().answerCallbackQuery(queryId, "", false, "");
-        } catch (IOException e) {
-            log.error("Ошибка при ответе на callback: {}", e.getMessage(), e);
-        }
-    }
+            log.info("Пользователь {} ввел корректное имя: '{}'", chatId, input);
+            sendText(chatId, "Вы ввели: " + input);
 
-    private void sendRootQuestion(String chatId) {
-        try {
-            JSONObject root = JsonLoader.loadJson();
-            stateService.setState(chatId, root);
+            JSONObject root = loadJson();
+            userStates.put(chatId, root);
             sendQuestionWithButtons(chatId, root);
-        } catch (IOException e) {
-            log.error("Ошибка загрузки сценария: {}", e.getMessage(), e);
-            messageService.sendText(chatId, "Ошибка загрузки сценария: " + e.getMessage());
         }
     }
 
-    private void sendQuestionWithButtons(String chatId, JSONObject node) {
+    private static void sendQuestionWithButtons(String chatId, JSONObject node) {
         String description = node.optString("description", "Выберите действие:");
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
 
@@ -152,105 +133,46 @@ public class JsonFlowService {
             for (int i = 0; i < options.length(); i++) {
                 JSONObject option = options.getJSONObject(i);
                 String tag = option.optString("tag");
+
                 switch (tag) {
                     case "button" -> {
                         String text = option.optString("text");
                         buttons.add(Collections.singletonList(
-                            InlineKeyboardButton.callbackButton(text, text, "primary")));
+                                InlineKeyboardButton.callbackButton(text, text, "primary")
+                        ));
+                    }
+                    case "messageName" -> {
+                        String text = option.optString("text");
+                        sendText(chatId, text);
+                        waitingForInputUsers.add(chatId);
                     }
                     case "message" -> {
                         String text = option.optString("text");
-                        messageService.sendText(chatId, text);
-                        stateService.setWaitingForInput(chatId, true);
+                        sendText(chatId, text);
                     }
                     case "stop" -> {
-                        messageService.sendText(chatId, "Составление заявки отменено");
-                        sendRootQuestion(chatId);
+                        sendText(chatId, "Составление заявки отменено");
+                        try {
+                            JSONObject root = loadJson();
+                            userStates.put(chatId, root);
+                            sendQuestionWithButtons(chatId, root);
+                        } catch (IOException e) {
+                            log.error("Ошибка при возврате в главное меню", e);
+                            sendText(chatId, "Ошибка при возврате в главное меню: " + e.getMessage());
+                        }
                     }
                     default -> {
-                        log.warn("Неизвестный тэг в JSON: {}", tag);
-                        messageService.sendText(chatId, "Неизвестный тэг в JSON: " + tag);
+                        log.warn("Неизвестный тэг в файле json: {}", tag);
+                        sendText(chatId, "Неизвестный тэг в файле json: " + tag);
                     }
                 }
             }
         }
 
-        messageService.sendButtons(chatId, description, buttons);
-    }
-}
-
-// MessageService.java
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-public class MessageService {
-    private static final Logger log = LoggerFactory.getLogger(MessageService.class);
-    private final BotApiClientController controller;
-
-    public MessageService(BotApiClientController controller) {
-        this.controller = controller;
-    }
-
-    public void sendText(String chatId, String text) {
         try {
-            controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
-            log.debug("Отправлено сообщение: {} -> {}", chatId, text);
+            client.messages().sendText(chatId, description, null, null, null, null, null, buttons);
         } catch (IOException e) {
-            log.error("Ошибка при отправке сообщения: {}", e.getMessage(), e);
-        }
-    }
-
-    public void sendButtons(String chatId, String text, List<List<InlineKeyboardButton>> buttons) {
-        try {
-            controller.getClient().messages().sendText(chatId, text, null, null, null, null, null, buttons);
-            log.debug("Отправлены кнопки: {} -> {}", chatId, text);
-        } catch (IOException e) {
-            log.error("Ошибка при отправке кнопок: {}", e.getMessage(), e);
-        }
-    }
-}
-
-// JsonLoader.java
-public class JsonLoader {
-    private static final String JSON_PATH = "C:/Users/SanzharovAA/TeamsBot/src/main/java/org/example/JsonHandlers/questions.json";
-
-    public static JSONObject loadJson() throws IOException {
-        try (FileInputStream fis = new FileInputStream(JSON_PATH)) {
-            return new JSONObject(new JSONTokener(fis));
-        }
-    }
-}
-
-// UserStateService.java
-public class UserStateService {
-    private final Map<String, JSONObject> userStates = new HashMap<>();
-    private final Set<String> waitingForInputUsers = new HashSet<>();
-
-    public boolean hasState(String chatId) {
-        return userStates.containsKey(chatId);
-    }
-
-    public JSONObject getState(String chatId) {
-        return userStates.get(chatId);
-    }
-
-    public void setState(String chatId, JSONObject state) {
-        userStates.put(chatId, state);
-    }
-
-    public void clearState(String chatId) {
-        userStates.remove(chatId);
-    }
-
-    public boolean isWaitingForInput(String chatId) {
-        return waitingForInputUsers.contains(chatId);
-    }
-
-    public void setWaitingForInput(String chatId, boolean waiting) {
-        if (waiting) {
-            waitingForInputUsers.add(chatId);
-        } else {
-            waitingForInputUsers.remove(chatId);
+            log.error("Ошибка при отправке вопроса с кнопками", e);
         }
     }
 }
