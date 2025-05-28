@@ -139,7 +139,6 @@ public class TagBot {
                 sendText(chatId, "ФИО не соответствует стандарту: требуется как минимум один пробел в строке");
                 userStates.remove(chatId);
             }
-            //return;
         }
     }
 
