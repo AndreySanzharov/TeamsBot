@@ -27,9 +27,12 @@ public class TagBot {
 
     private static final Map<String, JSONObject> userStates = new HashMap<>();
     private static final Set<String> waitingForInputUsers = new HashSet<>();
+    private static final Map<String, String> nameInputs = new HashMap<>();
+    private static final Map<String, String> phoneInputs = new HashMap<>();
+    private static final Map<String, String> problemDescriptions = new HashMap<>();
 
     public static void main(String[] args) {
-        log.info("Бот запущен и готов к обработке событий.");
+        log.info("Bot started.");
         client.addOnEventFetchListener(events -> events.forEach(TagBot::handleEvent));
         client.start();
     }
@@ -46,7 +49,7 @@ public class TagBot {
                         sendQuestionWithButtons(chatId, root);
                     }
                 } catch (Exception e) {
-                    log.error("Ошибка обработки нового сообщения", e);
+                    log.error("Ошибка при обработке сообщения", e);
                     sendText(chatId, "Ошибка загрузки меню: " + e.getMessage());
                 }
             }
@@ -69,6 +72,8 @@ public class TagBot {
                             sendQuestionWithButtons(chatId, next);
                         } else {
                             sendText(chatId, "Вы выбрали: " + data);
+                            problemDescriptions.put(chatId, data);
+                            printStatistics(chatId);
                             userStates.remove(chatId);
                         }
                         break;
@@ -77,14 +82,10 @@ public class TagBot {
                 try {
                     client.messages().answerCallbackQuery(queryID, "", false, "");
                 } catch (IOException e) {
-                    log.error("Ошибка при подтверждении callback-запроса", e);
-                    throw new RuntimeException(e);
+                    log.error("Ошибка при ответе на callback", e);
                 }
             }
-            default -> {
-                log.warn("Неизвестное событие: {}", event);
-                throw new IllegalStateException("Неизвестное событие: " + event);
-            }
+            default -> throw new IllegalStateException("Неизвестное событие: " + event);
         }
     }
 
@@ -98,7 +99,7 @@ public class TagBot {
         try {
             controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
         } catch (IOException e) {
-            log.error("Ошибка при отправке текста в чат {}: {}", chatId, text, e);
+            log.error("Ошибка при отправке сообщения", e);
         }
     }
 
@@ -109,14 +110,13 @@ public class TagBot {
 
             long spaceCount = input.chars().filter(ch -> ch == ' ').count();
             if (spaceCount != 2) {
-                log.info("Пользователь {} ввел имя с неверным количеством пробелов: '{}'", chatId, input);
                 sendText(chatId, "Ошибка: введите строку, содержащую ровно два пробела (пример: Имя Отчество Фамилия)");
                 waitingForInputUsers.add(chatId);
                 return;
             }
 
-            log.info("Пользователь {} ввел корректное имя: '{}'", chatId, input);
             sendText(chatId, "Вы ввели: " + input);
+            nameInputs.put(chatId, input);
 
             JSONObject root = loadJson();
             userStates.put(chatId, root);
@@ -149,6 +149,7 @@ public class TagBot {
                     case "message" -> {
                         String text = option.optString("text");
                         sendText(chatId, text);
+                        phoneInputs.put(chatId, text);
                     }
                     case "stop" -> {
                         sendText(chatId, "Составление заявки отменено");
@@ -161,10 +162,7 @@ public class TagBot {
                             sendText(chatId, "Ошибка при возврате в главное меню: " + e.getMessage());
                         }
                     }
-                    default -> {
-                        log.warn("Неизвестный тэг в файле json: {}", tag);
-                        sendText(chatId, "Неизвестный тэг в файле json: " + tag);
-                    }
+                    default -> sendText(chatId, "Неизвестный тэг в файле json: " + tag);
                 }
             }
         }
@@ -174,5 +172,22 @@ public class TagBot {
         } catch (IOException e) {
             log.error("Ошибка при отправке вопроса с кнопками", e);
         }
+    }
+
+    private static void printStatistics(String chatId) {
+        String description = problemDescriptions.getOrDefault(chatId, "Не указано");
+        String username = nameInputs.getOrDefault(chatId, chatId);
+        String forUser = username;
+        String phone = phoneInputs.getOrDefault(chatId, null);
+
+        StringBuilder stats = new StringBuilder();
+        stats.append("\nСТАТИСТИКА:\n");
+        stats.append("Description: ").append(description).append("\n");
+        stats.append("Username: ").append(username).append("\n");
+        stats.append("На кого зарегистрирована проблема: ").append(forUser).append("\n");
+        stats.append("Телефон: ").append(phone != null ? phone : "null").append("\n");
+
+        sendText(chatId, stats.toString());
+        log.info("Отправлена статистика для chatId={}:\n{}", chatId, stats);
     }
 }
