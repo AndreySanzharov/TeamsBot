@@ -23,7 +23,7 @@
                   "next": {
                     "options": [
                       {
-                        "tag": "message",
+                        "tag": "messageName",
                         "text": "Напишите ФИО сотрудника:"
                       }
                     ]
@@ -61,7 +61,15 @@
           },
           {
             "text": "Другое",
-            "tag": "button"
+            "tag": "button",
+            "next": {
+              "options": [
+                {
+                  "text": "Опишите вашу проблему в сообщении",
+                  "tag": "message"
+                }
+              ]
+            }
           }
         ]
       }
