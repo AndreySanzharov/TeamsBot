@@ -31,7 +31,14 @@
                 },
                 {
                   "text": "Отменить составление заявки.",
-                  "tag": "button"
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "stop"
+                      }
+                    ]
+                  }
                 }
               ]
             }

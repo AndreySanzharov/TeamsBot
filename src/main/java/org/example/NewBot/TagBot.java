@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
+
 public class TagBot {
     private static final String TOKEN = "001.1031916963.1477955322:1000000106";
     private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
@@ -37,14 +38,11 @@ public class TagBot {
                 String chatId = message.getChat().getChatId();
 
                 try {
-                    if (waitingForInputUsers.contains(chatId)){
-                        waitingForInputUsers.remove(chatId);
-                        sendText(chatId, "Вы ввели: " + message.getText());
-                    }
-                    JSONObject root = loadJson();
+                    handleMessage(chatId, message);
                     if (!userStates.containsKey(message.getChat().getChatId())) {
-                        sendQuestionWithButtons(chatId, root);
+                        JSONObject root = loadJson();
                         userStates.put(chatId, root);
+                        sendQuestionWithButtons(chatId, root);
                     }
                 } catch (Exception e) {
                     sendText(chatId, "Ошибка загрузки меню: " + e.getMessage());
@@ -101,6 +99,17 @@ public class TagBot {
         }
     }
 
+    public static void handleMessage(String chatId, Event message) throws IOException {
+        if (waitingForInputUsers.contains(chatId)) {
+            waitingForInputUsers.remove(chatId);
+            sendText(chatId, "Вы ввели: " + ((NewMessageEvent) message).getText());
+
+            JSONObject root = loadJson();
+            userStates.put(chatId, root);
+            sendQuestionWithButtons(chatId, root);
+            //return;
+        }
+    }
 
     private static void sendQuestionWithButtons(String chatId, JSONObject node) {
         String description = node.optString("description", "Выберите действие:");
@@ -123,7 +132,17 @@ public class TagBot {
                         String text = option.optString("text");
                         sendText(chatId, text);
                         waitingForInputUsers.add(chatId);
-                        return;
+                    }
+
+                    case "stop" -> {
+                        sendText(chatId, "Составление заявки отменено");
+                        try{
+                            JSONObject root = loadJson();
+                            userStates.put(chatId, root);
+                            sendQuestionWithButtons(chatId, root);
+                        } catch (IOException e){
+                            sendText(chatId,"Ошибка при возврате в главное меню: " + e.getMessage());
+                        }
                     }
                     default -> sendText(chatId, "Неизвестный тэг в файле json");
                 }
