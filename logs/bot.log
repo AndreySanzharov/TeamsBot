@@ -1,0 +1,174 @@
+2025-05-28 12:40:07 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 12:40:07 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 12:40:07 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 12:40:11 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:17 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:17 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:21 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:21 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:25 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:25 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:27 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:40:27 [INFO] org.example.TagBot - Пользователь ввел текст: "ghj" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 12:41:53 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 12:41:53 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 12:41:53 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 12:42:01 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {ghjk}
+2025-05-28 12:43:43 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 12:43:43 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 12:43:43 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 12:49:02 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 12:49:02 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 12:49:02 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 12:49:20 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {рр}
+2025-05-28 12:49:21 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:49:21 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:38 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 12:50:38 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 12:50:38 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 12:50:42 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {рр}
+2025-05-28 12:50:43 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:43 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:45 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:45 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:47 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От себя] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 12:50:47 [INFO] org.example.TagBot - Диалог завершен для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:24 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:07:24 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:07:24 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:07:28 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {ghgh}
+2025-05-28 13:07:30 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:30 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:31 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:31 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:33 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Отменить составление заявки.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:33 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:35 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:35 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:36 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:36 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:38 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:38 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:07:41 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {ghghgh}
+2025-05-28 13:07:41 [INFO] org.example.TagBot - Пользователь ввел текст: "ghghgh" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:10 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:21:10 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:21:10 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:21:20 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {gjgjgj}
+2025-05-28 13:21:23 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:23 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:25 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:25 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:26 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:26 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:21:28 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {ghgh}
+2025-05-28 13:21:28 [INFO] org.example.TagBot - Пользователь ввел текст: "ghgh" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:27 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:25:27 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:25:27 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:25:33 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {j,n}
+2025-05-28 13:25:34 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:34 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:36 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает электронная почта] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:36 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:37 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От себя] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:38 [INFO] org.example.TagBot - Диалог завершен для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:40 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:40 [WARN] org.example.TagBot - Состояние пользователя не найдено: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:48 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {nb}
+2025-05-28 13:25:49 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:49 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:52 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает электронная почта] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:52 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:54 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:54 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:25:56 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {jjj}
+2025-05-28 13:25:56 [INFO] org.example.TagBot - Пользователь ввел текст: "jjj" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:10 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:34:10 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:34:10 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:34:21 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {о}
+2025-05-28 13:34:25 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:25 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:28 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает электронная почта] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:28 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:37 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От себя] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:37 [INFO] org.example.TagBot - Диалог завершен для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:42 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {о}
+2025-05-28 13:34:43 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:43 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:47 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:34:47 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:19 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:35:19 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:35:19 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:35:23 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {jj}
+2025-05-28 13:35:28 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:28 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:29 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:29 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:53 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Да] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:35:53 [INFO] org.example.TagBot - Диалог завершен для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:38:19 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:38:19 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:38:19 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:38:23 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {jh}
+2025-05-28 13:38:25 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:38:25 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:38:26 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:38:26 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:39:14 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:39:14 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:39:14 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:39:16 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {pl}
+2025-05-28 13:39:18 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:39:18 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:39:20 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:39:20 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:39:23 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {j}
+2025-05-28 13:39:23 [INFO] org.example.TagBot - Пользователь ввел текст: "j" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:41:08 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:41:08 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:41:08 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:41:15 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {ghgh}
+2025-05-28 13:41:16 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:41:16 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:41:17 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:41:17 [INFO] org.example.TagBot - Диалог завершен для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:41:36 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:41:36 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:41:36 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:43:45 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:43:45 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:43:45 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:43:51 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {gh}
+2025-05-28 13:43:53 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:53 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:55 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:55 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:56 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:56 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:43:58 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {gghgh}
+2025-05-28 13:43:58 [INFO] org.example.TagBot - Пользователь ввел текст: "gghgh" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:29 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:48:29 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:48:29 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:48:32 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {yhyh}
+2025-05-28 13:48:34 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:34 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:35 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Заблокирована учетная запись] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:35 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:37 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {kj}
+2025-05-28 13:48:37 [INFO] org.example.TagBot - Пользователь ввел текст: "kj" | chatId: andrey.sanzharov@lukoil.com
+2025-05-28 13:48:41 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {khb}
+2025-05-28 13:58:54 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot successfully started
+2025-05-28 13:58:54 [INFO] org.example.TagBot - Бот запускается...
+2025-05-28 13:58:54 [INFO] ru.mail.im.botapi.BotLogger - IM_BOT bot already started
+2025-05-28 13:58:59 [INFO] org.example.TagBot - Новое сообщение от пользователя: andrey.sanzharov@lukoil.com = {попо}
+2025-05-28 13:59:01 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Зарегистрировать обращение] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:01 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:04 [INFO] org.example.TagBot - Обработка нажатия кнопки: [Не работает телефон] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:04 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:05 [INFO] org.example.TagBot - Обработка нажатия кнопки: [От имени другого сотрудника.] от пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:05 [INFO] org.example.TagBot - Переход к следующему шагу для пользователя: andrey.sanzharov@lukoil.com
+2025-05-28 13:59:05 [WARN] org.example.TagBot - Неизвестный тэг в файле jsonmessage
