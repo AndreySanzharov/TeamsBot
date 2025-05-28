@@ -23,6 +23,8 @@ public class TagBot {
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\java\\org\\example\\JsonHandlers\\questions.json";
 
     private static final Map<String, JSONObject> userStates = new HashMap<>();
+    private static final Set<String> waitingForInputUsers = new HashSet<>();
+
 
     public static void main(String[] args) {
         client.addOnEventFetchListener(events -> events.forEach(TagBot::handleEvent));
@@ -33,9 +35,14 @@ public class TagBot {
         switch (event) {
             case NewMessageEvent message -> {
                 String chatId = message.getChat().getChatId();
+
                 try {
+                    if (waitingForInputUsers.contains(chatId)){
+                        waitingForInputUsers.remove(chatId);
+                        sendText(chatId, "Вы ввели: " + message.getText());
+                    }
                     JSONObject root = loadJson();
-                    if (!userStates.containsKey(message.getChat().getChatId())){
+                    if (!userStates.containsKey(message.getChat().getChatId())) {
                         sendQuestionWithButtons(chatId, root);
                         userStates.put(chatId, root);
                     }
@@ -94,6 +101,7 @@ public class TagBot {
         }
     }
 
+
     private static void sendQuestionWithButtons(String chatId, JSONObject node) {
         String description = node.optString("description", "Выберите действие:");
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
@@ -102,14 +110,22 @@ public class TagBot {
         if (options != null) {
             for (int i = 0; i < options.length(); i++) {
                 JSONObject option = options.getJSONObject(i);
-                if ("button".equals(option.optString("tag"))) {
-                    String text = option.optString("text");
-                    buttons.add(Collections.singletonList(
-                            InlineKeyboardButton.callbackButton(text, text, "primary")
-                    ));
-                } else if ("message".equals(option.optString("tag"))) {
-                    String text = option.getString("text");
-                    sendText(chatId, text);
+                String tag = option.optString("tag");
+
+                switch (tag) {
+                    case "button" -> {
+                        String text = option.optString("text");
+                        buttons.add(Collections.singletonList(
+                                InlineKeyboardButton.callbackButton(text, text, "primary")
+                        ));
+                    }
+                    case "message" -> {
+                        String text = option.optString("text");
+                        sendText(chatId, text);
+                        waitingForInputUsers.add(chatId);
+                        return;
+                    }
+                    default -> sendText(chatId, "Неизвестный тэг в файле json");
                 }
             }
         }
