@@ -17,7 +17,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
 
-//поправка
+
 public class TagBot {
     private static final String TOKEN = "001.1031916963.1477955322:1000000106";
     private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
