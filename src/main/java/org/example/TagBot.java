@@ -131,9 +131,16 @@ public class TagBot {
 
             JSONObject root = loadJson();
             if (userInput.length() - userInput.replace(" ", "").length() > 1) {
-                userStates.put(chatId, root);
+                JSONObject next = root;
                 answers.add(userInput);
-                sendQuestionWithButtons(chatId, root);
+                if (next.has("options") && next.getJSONArray("options").length() > 0) {
+                    userStates.put(chatId, next);
+                    sendQuestionWithButtons(chatId, next);
+                } else {
+                    sendText(chatId, "Спасибо! Диалог завершён.");
+                    userStates.remove(chatId);
+                    log.info("Диалог завершён для пользователя (messageName): " + chatId);
+                }
             } else {
                 log.error("ФИО не соответствует стандарту: требуется как минимум один пробел в строке");
                 sendText(chatId, "ФИО не соответствует стандарту: требуется как минимум один пробел в строке");
@@ -142,18 +149,28 @@ public class TagBot {
         }
     }
 
+
     private static void handleMessage(String chatId, Event message) throws IOException {
         if (waitingForInput.contains(chatId)) {
             waitingForInput.remove(chatId);
             String userInput = ((NewMessageEvent) message).getText();
             log.info("Пользователь ввел текстовое сообщение: \"" + userInput + "\" | chatId: " + chatId);
             sendText(chatId, "Вы ввели: " + userInput);
-            JSONObject root = loadJson();
-            userStates.put(chatId, root);
+
+            JSONObject next = loadJson();
             answers.add(userInput);
-            sendQuestionWithButtons(chatId, root);
+
+            if (next.has("options") && next.getJSONArray("options").length() > 0) {
+                userStates.put(chatId, next);
+                sendQuestionWithButtons(chatId, next);
+            } else {
+                sendText(chatId, "Спасибо! Диалог завершён.");
+                userStates.remove(chatId);
+                log.info("Диалог завершён для пользователя (message): " + chatId);
+            }
         }
     }
+
 
     private static void sendQuestionWithButtons(String chatId, JSONObject node) {
         String description = node.optString("description", "Выберите действие:");
