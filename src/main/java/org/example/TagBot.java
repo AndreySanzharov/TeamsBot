@@ -15,6 +15,9 @@ import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 
 
@@ -24,6 +27,8 @@ public class TagBot {
     private static final BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
+    private static final String ANSWERS_PATH = "answers.txt";
+
 
     private static final Map<String, JSONObject> userStates = new HashMap<>();
 
@@ -128,6 +133,7 @@ public class TagBot {
             String userInput = ((NewMessageEvent) message).getText();
             log.info("Пользователь ввел имя сотрудника: \"" + userInput + "\" | chatId: " + chatId);
             sendText(chatId, "Вы ввели: " + userInput);
+            saveAnswer(chatId, userInput);
 
             JSONObject root = loadJson();
             if (userInput.length() - userInput.replace(" ", "").length() > 1) {
@@ -156,6 +162,7 @@ public class TagBot {
             String userInput = ((NewMessageEvent) message).getText();
             log.info("Пользователь ввел текстовое сообщение: \"" + userInput + "\" | chatId: " + chatId);
             sendText(chatId, "Вы ввели: " + userInput);
+            saveAnswer(chatId, userInput);
 
             JSONObject next = loadJson();
             answers.add(userInput);
@@ -170,6 +177,17 @@ public class TagBot {
             }
         }
     }
+
+    private static void saveAnswer(String chatId, String answer) {
+        String line = String.format("Пользователь %s ввел: %s%n", chatId, answer);
+        try {
+            Files.writeString(Path.of(ANSWERS_PATH), line, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            log.info("Ответ сохранен в файл: " + line);
+        } catch (IOException e) {
+            log.error("Ошибка при записи ответа в файл: " + e.getMessage());
+        }
+    }
+
 
 
     private static void sendQuestionWithButtons(String chatId, JSONObject node) {
