@@ -22,7 +22,7 @@ public class TagBot {
     private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
     private static final BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
     private static final BotApiClientController controller = BotApiClientController.startBot(client);
-    private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\messages.json";
+    private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
 
     private static final Map<String, JSONObject> userStates = new HashMap<>();
     private static final Set<String> waitingForInput = new HashSet<>();
@@ -72,6 +72,8 @@ public class TagBot {
                             sendQuestionWithButtons(chatId, next);
                         } else {
                             sendText(chatId, "Вы выбрали: " + data);
+                            sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
+                            log.info("Диалог завершен для пользователя: " + chatId);
                             userStates.remove(chatId);
                         }
                         break;
@@ -137,7 +139,7 @@ public class TagBot {
                     case "button" -> buttons.add(Collections.singletonList(
                             InlineKeyboardButton.callbackButton(text, text, "primary")
                     ));
-                    
+
                     case "message" -> {
                         sendText(chatId, text);
                         userStates.put(chatId, option);
