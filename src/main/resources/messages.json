@@ -1,1 +1,15 @@
-
+{
+  "options": [
+    {
+      "text": "Это общение текстом",
+      "tag": "message",
+      "next": {
+        "options": [{
+          "text": "message 2",
+          "tag": "message"
+        }
+        ]
+      }
+    }
+  ]
+}
