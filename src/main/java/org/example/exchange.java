@@ -1,38 +1,15 @@
-package org.example;
+package org.example.DecomposedCode;
 
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
-import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
-import ru.mail.im.botapi.api.entity.SendTextRequest;
 import ru.mail.im.botapi.fetcher.event.CallbackQueryEvent;
 import ru.mail.im.botapi.fetcher.event.Event;
 import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.*;
-
-public class TagBot {
-    private static final String TOKEN = "001.1031916963.1477955322:1000000106";
-    private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
-    private static final Logger log = LoggerFactory.getLogger(TagBot.class);
-
-    public static void main(String[] args) {
-        log.info("Бот запускается...");
-        BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
-        BotApiClientController controller = BotApiClientController.startBot(client);
-        UserStateManager stateManager = new UserStateManager();
-        EventHandler handler = new EventHandler(client, controller, stateManager);
-
-        client.addOnEventFetchListener(events -> events.forEach(handler::handleEvent));
-        client.start();
-        log.info("Бот запустился.");
-    }
-}
 
 class EventHandler {
     private final BotApiClient client;
@@ -86,9 +63,53 @@ class EventHandler {
     }
 }
 
+
+package org.example.DecomposedCode;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.mail.im.botapi.BotApiClient;
+import ru.mail.im.botapi.BotApiClientController;
+
+public class TagBotApplication {
+    private static final String TOKEN = "001.1031916963.1477955322:1000000106";
+    private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
+    private static final Logger log = LoggerFactory.getLogger(TagBotApplication.class);
+
+    public static void main(String[] args) {
+        log.info("Бот запускается...");
+        BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
+        BotApiClientController controller = BotApiClientController.startBot(client);
+        UserStateManager stateManager = new UserStateManager(client, controller);
+        EventHandler handler = new EventHandler(client, controller, stateManager);
+
+        client.addOnEventFetchListener(events -> events.forEach(handler::handleEvent));
+        client.start();
+        log.info("Бот запустился.");
+    }
+}
+
+package org.example.DecomposedCode;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.mail.im.botapi.BotApiClient;
+import ru.mail.im.botapi.BotApiClientController;
+import ru.mail.im.botapi.api.entity.InlineKeyboardButton;
+import ru.mail.im.botapi.api.entity.SendTextRequest;
+import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
+
+import java.io.FileInputStream;
+
+import java.io.IOException;
+import java.util.*;
+
 class UserStateManager {
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
     private final Map<String, JSONObject> userStates = new HashMap<>();
+    private final Map<String, List<String>> userAnswers = new HashMap<>();
     private final Set<String> waitingForInput = new HashSet<>();
     private static final Logger log = LoggerFactory.getLogger(UserStateManager.class);
     private final BotApiClient client;
@@ -126,6 +147,7 @@ class UserStateManager {
             waitingForInput.remove(chatId);
             String userInput = message.getText();
             log.info("Пользователь написал сообщение: {}", userInput);
+            saveUserAnswer(chatId, userInput);
             sendText(chatId, "Вы ввели: " + userInput);
 
             JSONObject current = userStates.get(chatId);
@@ -134,7 +156,9 @@ class UserStateManager {
                 userStates.put(chatId, next);
                 sendQuestionWithButtons(chatId, next);
             } else {
-                sendText(chatId, "Спасибо! Диалог завершён.");
+                getUserAnswers(chatId);
+                sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
+                userAnswers.remove(chatId);
                 userStates.remove(chatId);
             }
         }
@@ -156,20 +180,32 @@ class UserStateManager {
         for (int i = 0; i < options.length(); i++) {
             JSONObject option = options.getJSONObject(i);
             if (option.optString("text").equals(data)) {
+                saveUserAnswer(chatId, data);
                 if (option.has("next")) {
                     JSONObject next = option.getJSONObject("next");
-                    log.info("Переход к следующему узлу для пользователя: {}", chatId);
+                    log.debug("Переход к следующему узлу для пользователя: {}", chatId);
                     userStates.put(chatId, next);
                     sendQuestionWithButtons(chatId, next);
                 } else {
                     sendText(chatId, "Вы выбрали: " + data);
+                    getUserAnswers(chatId);
                     sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
                     log.info("Диалог завершен для пользователя: {}", chatId);
+                    userAnswers.remove(chatId);
                     userStates.remove(chatId);
                 }
                 break;
             }
         }
+    }
+
+    public void saveUserAnswer(String chatId, String answer){
+        userAnswers.computeIfAbsent(chatId, k -> new ArrayList<>()).add(answer);
+        log.debug("Ответ пользователя {}: {}", chatId, answer);
+    }
+
+    public void getUserAnswers(String chatId){
+        sendText(chatId,  "Ответы пользователя: " + chatId + "\n" + String.join("\n ", userAnswers.getOrDefault(chatId, Collections.emptyList())));
     }
 
     public void sendQuestionWithButtons(String chatId, JSONObject node) {
@@ -186,20 +222,22 @@ class UserStateManager {
 
                 switch (tag) {
                     case "button" -> buttons.add(Collections.singletonList(
-                        InlineKeyboardButton.callbackButton(text, text, "primary")
+                            InlineKeyboardButton.callbackButton(text, text, "primary")
                     ));
+
                     case "message" -> {
                         sendText(chatId, text);
                         userStates.put(chatId, option);
                         waitingForInput.add(chatId);
                         hasMessageTag = true;
                     }
+
                     case "stop" -> {
                         sendText(chatId, "Составление заявки отменено");
                         try {
                             JSONObject root = loadRootNode();
                             userStates.put(chatId, root);
-                            sendQuestionWithButtons(chatId, root);
+                            //sendQuestionWithButtons(chatId, root);
                         } catch (IOException e) {
                             log.error("Ошибка при возврате в меню: {}", e.getMessage());
                         }
@@ -215,7 +253,7 @@ class UserStateManager {
                 log.error("Ошибка отправки кнопок: {}", e.getMessage());
             }
         } else if (!hasMessageTag) {
-            sendText(chatId, "Спасибо! Диалог завершён.");
+            sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
             userStates.remove(chatId);
         }
     }
