@@ -11,12 +11,12 @@ import ru.mail.im.botapi.api.entity.SendTextRequest;
 import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
 import java.io.FileInputStream;
+
 import java.io.IOException;
 import java.util.*;
 
 class UserStateManager {
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
-    private static final String SAVE_FILE = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\ansvers.txt";
     private final Map<String, JSONObject> userStates = new HashMap<>();
     private final Map<String, List<String>> userAnswers = new HashMap<>();
     private final Set<String> waitingForInput = new HashSet<>();
@@ -66,7 +66,7 @@ class UserStateManager {
                 sendQuestionWithButtons(chatId, next);
             } else {
                 getUserAnswers(chatId);
-                sendText(chatId, "Спасибо! Диалог завершён.");
+                sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
                 userAnswers.remove(chatId);
                 userStates.remove(chatId);
             }
@@ -92,7 +92,7 @@ class UserStateManager {
                 saveUserAnswer(chatId, data);
                 if (option.has("next")) {
                     JSONObject next = option.getJSONObject("next");
-                    log.info("Переход к следующему узлу для пользователя: {}", chatId);
+                    log.debug("Переход к следующему узлу для пользователя: {}", chatId);
                     userStates.put(chatId, next);
                     sendQuestionWithButtons(chatId, next);
                 } else {
@@ -133,18 +133,20 @@ class UserStateManager {
                     case "button" -> buttons.add(Collections.singletonList(
                             InlineKeyboardButton.callbackButton(text, text, "primary")
                     ));
+
                     case "message" -> {
                         sendText(chatId, text);
                         userStates.put(chatId, option);
                         waitingForInput.add(chatId);
                         hasMessageTag = true;
                     }
+
                     case "stop" -> {
                         sendText(chatId, "Составление заявки отменено");
                         try {
                             JSONObject root = loadRootNode();
                             userStates.put(chatId, root);
-                            sendQuestionWithButtons(chatId, root);
+                            //sendQuestionWithButtons(chatId, root);
                         } catch (IOException e) {
                             log.error("Ошибка при возврате в меню: {}", e.getMessage());
                         }
@@ -160,7 +162,7 @@ class UserStateManager {
                 log.error("Ошибка отправки кнопок: {}", e.getMessage());
             }
         } else if (!hasMessageTag) {
-            sendText(chatId, "Спасибо! Диалог завершён.");
+            sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
             userStates.remove(chatId);
         }
     }
