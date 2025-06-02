@@ -94,11 +94,6 @@ class UserStateManager {
     private final BotApiClient client;
     private final BotApiClientController controller;
 
-    public UserStateManager() {
-        this.client = null;
-        this.controller = null;
-    }
-
     public UserStateManager(BotApiClient client, BotApiClientController controller) {
         this.client = client;
         this.controller = controller;
