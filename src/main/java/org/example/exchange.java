@@ -32,6 +32,7 @@ public class TagBot {
         log.info("Бот запускается...");
         client.addOnEventFetchListener(events -> events.forEach(TagBot::handleEvent));
         client.start();
+        log.info("Бот запустился.");
     }
 
     public static void handleEvent(Event event) {
@@ -104,6 +105,7 @@ public class TagBot {
         if (waitingForInput.contains(chatId)) {
             waitingForInput.remove(chatId);
             String userInput = ((NewMessageEvent) message).getText();
+            log.info("Пользователь написал сообщение: " + userInput);
             sendText(chatId, "Вы ввели: " + userInput);
 
             JSONObject current = userStates.get(chatId);
@@ -135,6 +137,7 @@ public class TagBot {
                     case "button" -> buttons.add(Collections.singletonList(
                             InlineKeyboardButton.callbackButton(text, text, "primary")
                     ));
+                    
                     case "message" -> {
                         sendText(chatId, text);
                         userStates.put(chatId, option);
