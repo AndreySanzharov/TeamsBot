@@ -39,7 +39,7 @@ public class TagBot {
         switch (event) {
             case NewMessageEvent message -> {
                 String chatId = message.getChat().getChatId();
-                log.info("Новое сообщение от пользователя: " + chatId + " = {" + message.getText() + "}");
+                log.info("Новое сообщение от пользователя: {} = {{}}", chatId, message.getText());
                 try {
                     handleMessage(chatId, message);
                     if (!userStates.containsKey(chatId)) {
@@ -57,23 +57,32 @@ public class TagBot {
                 String queryID = callback.getQueryId();
                 String data = callback.getCallbackData();
 
+                log.info("Callback от пользователя: {}| Кнопка: {}", chatId, data);
+
                 JSONObject current = userStates.get(chatId);
-                if (current == null) return;
+                if (current == null) {
+                    log.warn("Нет состояния для пользователя: {}", chatId);
+                    return;
+                }
 
                 JSONArray options = current.optJSONArray("options");
-                if (options == null) return;
+                if (options == null) {
+                    log.warn("Нет опций у текущего состояния пользователя: {}", chatId);
+                    return;
+                }
 
                 for (int i = 0; i < options.length(); i++) {
                     JSONObject option = options.getJSONObject(i);
                     if (option.optString("text").equals(data)) {
                         if (option.has("next")) {
                             JSONObject next = option.getJSONObject("next");
+                            log.info("Переход к следующему узлу для пользователя: {}", chatId);
                             userStates.put(chatId, next);
                             sendQuestionWithButtons(chatId, next);
                         } else {
                             sendText(chatId, "Вы выбрали: " + data);
                             sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
-                            log.info("Диалог завершен для пользователя: " + chatId);
+                            log.info("Диалог завершен для пользователя: {}", chatId);
                             userStates.remove(chatId);
                         }
                         break;
@@ -82,10 +91,10 @@ public class TagBot {
                 try {
                     client.messages().answerCallbackQuery(queryID, "", false, "");
                 } catch (IOException e) {
-                    log.error("Ошибка подтверждения callback: " + e.getMessage());
+                    log.error("Ошибка подтверждения callback: {}", e.getMessage());
                 }
             }
-            default -> log.warn("Неизвестный тип события: " + event.getType());
+            default -> log.warn("Неизвестный тип события: {}", event.getType());
         }
     }
 
@@ -99,7 +108,7 @@ public class TagBot {
         try {
             controller.sendTextMessage(new SendTextRequest().setChatId(chatId).setText(text));
         } catch (IOException e) {
-            log.error("Ошибка отправки текста: " + e.getMessage());
+            log.error("Ошибка отправки текста: {}", e.getMessage());
         }
     }
 
@@ -107,7 +116,7 @@ public class TagBot {
         if (waitingForInput.contains(chatId)) {
             waitingForInput.remove(chatId);
             String userInput = ((NewMessageEvent) message).getText();
-            log.info("Пользователь написал сообщение: " + userInput);
+            log.info("Пользователь написал сообщение: {}", userInput);
             sendText(chatId, "Вы ввели: " + userInput);
 
             JSONObject current = userStates.get(chatId);
@@ -154,7 +163,7 @@ public class TagBot {
                             userStates.put(chatId, root);
                             sendQuestionWithButtons(chatId, root);
                         } catch (IOException e) {
-                            log.error("Ошибка при возврате в меню: " + e.getMessage());
+                            log.error("Ошибка при возврате в меню: {}", e.getMessage());
                         }
                     }
                 }
@@ -165,7 +174,7 @@ public class TagBot {
             try {
                 client.messages().sendText(chatId, description, null, null, null, null, null, buttons);
             } catch (IOException e) {
-                log.error("Ошибка отправки кнопок: " + e.getMessage());
+                log.error("Ошибка отправки кнопок: {}", e.getMessage());
             }
         } else if (!hasMessageTag) {
             sendText(chatId, "Спасибо! Диалог завершён.");
