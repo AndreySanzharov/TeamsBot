@@ -1,0 +1,29 @@
+{
+  "description": "Что случилось?",
+  "options": [
+    {
+      "tag": "button",
+      "text": "Не работает телефон",
+      "next": {
+        "description": "Пожалуйста, напишите ФИО сотрудника:",
+        "options": [
+          {
+            "tag": "message",
+            "text": "Введите ФИО",
+            "handler": "validateName",
+            "next": {
+              "description": "Пожалуйста, опишите проблему:",
+              "options": [
+                {
+                  "tag": "message",
+                  "text": "Введите описание",
+                  "handler": "aggregateAnswer"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
