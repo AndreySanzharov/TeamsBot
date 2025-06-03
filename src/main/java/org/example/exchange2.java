@@ -1,70 +1,22 @@
-package org.example.DecomposedCode;
+public static boolean aggregateAnswer(String input, String chatId) {
+    List<String> answers = userStateManager.getUserAnswersList(chatId);
+    JSONObject result = new JSONObject();
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+    result.put("От кого", chatId);
 
-import java.lang.reflect.Method;
+    String registeredTo = answers.size() >= 1 ? answers.get(0) : "не указано";
+    result.put("На кого зарегистрирована заявка", registeredTo);
 
-public class HandlerProcessor {
-    private static final Logger log = LoggerFactory.getLogger(HandlerProcessor.class);
-    private static UserStateManager userStateManager;
+    String issue = answers.size() >= 2 ? answers.get(1) : "не указано";
+    result.put("Происшествие", issue);
 
-    public HandlerProcessor(UserStateManager userStateManager) {
-        HandlerProcessor.userStateManager = userStateManager;
-        Handlers.setUserStateManager(userStateManager); // Передаём в Handlers
-    }
+    StringBuilder prettyOutput = new StringBuilder("Сводка заявки:\n");
+    prettyOutput.append("От кого: ").append(chatId).append("\n");
+    prettyOutput.append("На кого зарегистрирована заявка: ").append(registeredTo).append("\n");
+    prettyOutput.append("Происшествие: ").append(issue);
 
-    public static boolean processHandler(String handler, String input, String chatId) {
-        if (handler == null) {
-            return true;
-        }
-        try {
-            Method method = Handlers.class.getDeclaredMethod(handler, String.class, String.class);
-            return (boolean) method.invoke(null, input, chatId);
-        } catch (NoSuchMethodException e) {
-            log.warn("Обработчик '{}' не найден.", handler);
-        } catch (Exception e) {
-            log.error("Ошибка при выполнении обработчика '{}': {}", handler, e.getMessage());
-        }
-        return true;
-    }
-}
+    userStateManager.sendText(chatId, prettyOutput.toString());
+    log.info("Ответ сформирован и отправлен: {}", result.toString());
 
-package org.example.DecomposedCode;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Set;
-
-public class Handlers {
-    private static final Logger log = LoggerFactory.getLogger(Handlers.class);
-    private static UserStateManager userStateManager;
-
-    public static void setUserStateManager(UserStateManager manager) {
-        userStateManager = manager;
-    }
-
-    public static boolean validateName(String input, String chatId) {
-        if (input == null) return false;
-        int spaceCount = (int) input.chars().filter(ch -> ch == ' ').count();
-        boolean valid = spaceCount >= 2;
-
-        if (!valid) {
-            userStateManager.sendText(chatId, "Неверный формат ФИО. Попробуйте еще раз");
-        }
-        log.info("Проверка ФИО '{}': {} пробелов => {}", input, spaceCount, valid);
-        return valid;
-    }
-
-    public static boolean searchName(String input, String chatId) {
-        Set<String> usersList = Set.of("Иванов Иван Иванович", "Петров Петр Петрович"); // пример списка
-        boolean isUserInList = usersList.contains(input);
-        if (!isUserInList) {
-            userStateManager.sendText(chatId, "Пользователь не найден. Попробуйте еще раз");
-        }
-        return isUserInList;
-    }
-
-    // Добавляйте сюда новые методы по мере необходимости, и вызывайте их по имени из JSON.
+    return true;
 }
