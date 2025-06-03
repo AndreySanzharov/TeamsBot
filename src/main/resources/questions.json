@@ -23,7 +23,7 @@
                   "next": {
                     "options": [
                       {
-                        "tag": "messageName",
+                        "tag": "message",
                         "text": "Напишите ФИО сотрудника:"
                       }
                     ]
@@ -45,28 +45,174 @@
           },
           {
             "text": "Сбросить пароль учетной записи в домене",
-            "tag": "button"
+            "tag": "button",
+            "next": {
+              "description": "Подтвердите согласие на отправку копии Вашего запроса администратору инцидентов ИБ. Вы согласны?",
+              "options": [
+                {
+                  "tag": "button",
+                  "text": "Да",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "message",
+                        "text": "Введите номер телефона, по которому с Вами сейчас можно связаться"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "tag": "button",
+                  "text": "Нет",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "stop"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
           },
           {
             "text": "Не работает электронная почта",
-            "tag": "button"
+            "tag": "button",
+            "next": {
+              "description": "От кого зарегистрировать заявку?",
+              "options": [
+                {
+                  "text": "От себя",
+                  "tag": "button"
+                },
+                {
+                  "text": "От имени другого сотрудника.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "message",
+                        "text": "Напишите ФИО сотрудника:"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "text": "Отменить составление заявки.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "stop"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
           },
           {
             "text": "Не Включается ПК",
-            "tag": "button"
+            "tag": "button",
+            "next": {
+              "description": "От кого зарегистрировать заявку?",
+              "options": [
+                {
+                  "text": "От себя",
+                  "tag": "button"
+                },
+                {
+                  "text": "От имени другого сотрудника.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "message",
+                        "text": "Напишите ФИО сотрудника:"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "text": "Отменить составление заявки.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "stop"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
           },
           {
             "text": "Заблокирована учетная запись",
-            "tag": "button"
+            "tag": "button",
+            "next": {
+              "description": "Учетная запись будет разблокирована. Отчет по обращению направляется в центр управления услугами информационной безопасности. Вы согласны?",
+              "options": [
+                {
+                  "tag": "button",
+                  "text": "Да"
+                },
+                {
+                  "tag": "button",
+                  "text": "Нет"
+                }
+              ]
+            }
           },
           {
             "text": "Другое",
             "tag": "button",
             "next": {
+              "description": "От кого зарегистрировать заявку?",
               "options": [
                 {
-                  "text": "Опишите вашу проблему в сообщении",
-                  "tag": "message"
+                  "text": "От себя",
+                  "tag": "button",
+                  "next":{
+                    "options": [
+                      {
+                        "tag": "message",
+                        "text": "Опишите проблему"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "text": "От имени другого сотрудника.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "message",
+                        "text": "Напишите ФИО сотрудника:",
+                        "handler": "validateName",
+                        "next": {
+                          "options": [
+                            {
+                              "tag": "message",
+                              "text": "Опишите проблему",
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "text": "Отменить составление заявки.",
+                  "tag": "button",
+                  "next": {
+                    "options": [
+                      {
+                        "tag": "stop"
+                      }
+                    ]
+                  }
                 }
               ]
             }
@@ -78,19 +224,10 @@
       "text": "Узнать статус обращений",
       "tag": "button",
       "next": {
-        "description": "Заглушка",
         "options": [
           {
-            "text": "GGG",
-            "tag": "button",
-            "next": {
-              "options": [
-                {
-                  "text": "FFF",
-                  "tag": "button"
-                }
-              ]
-            }
+            "text": "В этом окружении это выполнить нельзя",
+            "tag": "message"
           }
         ]
       }
