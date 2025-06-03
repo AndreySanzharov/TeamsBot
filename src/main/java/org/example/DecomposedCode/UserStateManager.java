@@ -11,7 +11,6 @@ import ru.mail.im.botapi.api.entity.SendTextRequest;
 import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
 import java.io.FileInputStream;
-
 import java.io.IOException;
 import java.util.*;
 
@@ -21,8 +20,9 @@ class UserStateManager {
     private final Map<String, List<String>> userAnswers = new HashMap<>();
     private final Set<String> waitingForInput = new HashSet<>();
     private static final Logger log = LoggerFactory.getLogger(UserStateManager.class);
-    private final BotApiClient client;
-    private final BotApiClientController controller;
+    private BotApiClient client;
+    private BotApiClientController controller;
+
 
     public UserStateManager(BotApiClient client, BotApiClientController controller) {
         this.client = client;
@@ -56,10 +56,20 @@ class UserStateManager {
             waitingForInput.remove(chatId);
             String userInput = message.getText();
             log.info("Пользователь написал сообщение: {}", userInput);
+            JSONObject current = userStates.get(chatId);
+
+            if (current != null && current.has("handler")) {
+                String handler = current.getString("handler");
+                if (!HandlerProcessor.processHandler(handler, userInput, chatId)) { // удалить последний параметр
+                    waitingForInput.add(chatId);
+                    return;
+                }
+            }
+
             saveUserAnswer(chatId, userInput);
             sendText(chatId, "Вы ввели: " + userInput);
 
-            JSONObject current = userStates.get(chatId);
+            //JSONObject current = userStates.get(chatId);
             if (current != null && current.has("next")) {
                 JSONObject next = current.getJSONObject("next");
                 userStates.put(chatId, next);
@@ -108,13 +118,13 @@ class UserStateManager {
         }
     }
 
-    public void saveUserAnswer(String chatId, String answer){
+    public void saveUserAnswer(String chatId, String answer) {
         userAnswers.computeIfAbsent(chatId, k -> new ArrayList<>()).add(answer);
         log.debug("Ответ пользователя {}: {}", chatId, answer);
     }
 
-    public void getUserAnswers(String chatId){
-        sendText(chatId,  "Ответы пользователя: " + chatId + "\n" + String.join("\n ", userAnswers.getOrDefault(chatId, Collections.emptyList())));
+    public void getUserAnswers(String chatId) {
+        sendText(chatId, "Ответы пользователя: " + chatId + "\n" + String.join("\n ", userAnswers.getOrDefault(chatId, Collections.emptyList())));
     }
 
     public void sendQuestionWithButtons(String chatId, JSONObject node) {
@@ -122,13 +132,11 @@ class UserStateManager {
         List<List<InlineKeyboardButton>> buttons = new ArrayList<>();
         JSONArray options = node.optJSONArray("options");
         boolean hasMessageTag = false;
-
         if (options != null) {
             for (int i = 0; i < options.length(); i++) {
                 JSONObject option = options.getJSONObject(i);
                 String tag = option.optString("tag");
                 String text = option.optString("text", "");
-
                 switch (tag) {
                     case "button" -> buttons.add(Collections.singletonList(
                             InlineKeyboardButton.callbackButton(text, text, "primary")
@@ -141,12 +149,12 @@ class UserStateManager {
                         hasMessageTag = true;
                     }
 
+
                     case "stop" -> {
                         sendText(chatId, "Составление заявки отменено");
                         try {
                             JSONObject root = loadRootNode();
                             userStates.put(chatId, root);
-                            //sendQuestionWithButtons(chatId, root);
                         } catch (IOException e) {
                             log.error("Ошибка при возврате в меню: {}", e.getMessage());
                         }
@@ -154,7 +162,6 @@ class UserStateManager {
                 }
             }
         }
-
         if (!buttons.isEmpty()) {
             try {
                 client.messages().sendText(chatId, description, null, null, null, null, null, buttons);

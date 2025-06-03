@@ -17,9 +17,11 @@ public class TagBotApplication {
         UserStateManager stateManager = new UserStateManager(client, controller);
         EventHandler handler = new EventHandler(client, controller, stateManager);
 
+        UserStateManager userStateManager = new UserStateManager(client, controller);
+        HandlerProcessor processor = new HandlerProcessor(userStateManager);
+
         client.addOnEventFetchListener(events -> events.forEach(handler::handleEvent));
         client.start();
         log.info("Бот запустился.");
     }
 }
-
