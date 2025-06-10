@@ -1,55 +1,34 @@
-CREATE TABLE IF NOT EXISTS user_answers (
-    id IDENTITY PRIMARY KEY,
-    chat_id VARCHAR(255) NOT NULL,
-    question VARCHAR(1000) NOT NULL,
-    answer VARCHAR(1000) NOT NULL
-);
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+package org.example.TagBot;
+
+import java.io.IOException;
 import java.sql.*;
-import java.util.*;
-import java.util.stream.Collectors;
 
-public class UserAnswersDao {
-    private static final String JDBC_URL = "jdbc:h2:./data/tagbotdb;INIT=RUNSCRIPT FROM 'classpath:schema.sql'";
-    private static final String USER = "sa";
-    private static final String PASSWORD = "";
+public class DbManager {
+    String jdbcUrl = "jdbc:h2:file:./data/testdb;DB_CLOSE_DELAY=-1";
+    String user = "sa";
+    String password = "";
 
-    public UserAnswersDao() {
-        // schema.sql запускается автоматически при первом подключении
-    }
+    public void saveUserAnswer(String chatId, String answer) throws SQLException, IOException {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement()) {
 
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(JDBC_URL, USER, PASSWORD);
-    }
-
-    public void saveAnswer(String chatId, String question, String answer) {
-        String sql = "INSERT INTO user_answers (chat_id, question, answer) VALUES (?, ?, ?)";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, chatId);
-            ps.setString(2, question);
-            ps.setString(3, answer);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Map<String, String> getAnswers(String chatId) {
-        Map<String, String> answers = new HashMap<>();
-        String sql = "SELECT question, answer FROM user_answers WHERE chat_id = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, chatId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    answers.put(rs.getString("question"), rs.getString("answer"));
-                }
+            String schemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\schema.sql")));
+            stmt.execute(schemaSql);
+            String insertSql = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                pstmt.setString(1, chatId);
+                pstmt.setString(2, answer);
+                pstmt.executeUpdate();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+
+            // Чтение и вывод
+            ResultSet rs = stmt.executeQuery("SELECT * FROM users");
+            while (rs.next()) {
+                System.out.printf("User: %d, %s, %s%n",
+                        rs.getInt("id"),
+                        rs.getString("chatId"),
+                        rs.getString("answer"));
+            }
         }
-        return answers;
     }
 }
