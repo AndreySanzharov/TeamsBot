@@ -1,4 +1,4 @@
-package org.example.DecomposedCode;
+package org.example.TagBot;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -62,7 +62,7 @@ class EventHandler {
         }
     }
 }
-package org.example.DecomposedCode;
+package org.example.TagBot;
 
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
@@ -93,12 +93,13 @@ public class HandlerProcessor {
         return true;
     }
 }
-package org.example.DecomposedCode;
+package org.example.TagBot;
 
-import org.example.DecomposedCode.UserStateManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class Handlers {
@@ -110,6 +111,7 @@ public class Handlers {
     }
 
     public static boolean validateName(String input, String chatId) {
+        log.info("Сработал обработчик validateName");
         if (input == null) return false;
         int spaceCount = (int) input.chars().filter(ch -> ch == ' ').count();
         boolean valid = spaceCount >= 2;
@@ -122,6 +124,7 @@ public class Handlers {
     }
 
     public static boolean searchName(String input, String chatId) {
+        log.info("Сработал обработчик searchName");
         Set<String> usersList = Set.of("Иванов Иван Иванович", "Петров Петр Петрович"); // пример списка. Надо удалить
         boolean isUserInList = usersList.contains(input);
         if (!isUserInList) {
@@ -129,8 +132,15 @@ public class Handlers {
         }
         return isUserInList;
     }
+
+    public static boolean answers(String input, String chatId){
+        log.info("Сработал обработчик answers");
+        Map<String, List<String>> answers = userStateManager.getUserAnswers(chatId);
+        // логика
+        return true;
+    }
 }
-package org.example.DecomposedCode;
+package org.example.TagBot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -157,7 +167,7 @@ public class TagBotApplication {
         log.info("Бот запустился.");
     }
 }
-package org.example.DecomposedCode;
+package org.example.TagBot;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -176,7 +186,7 @@ import java.util.*;
 class UserStateManager {
     private static final String JSON_PATH = "C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\questions.json";
     private final Map<String, JSONObject> userStates = new HashMap<>();
-    private final Map<String, List<String>> userAnswers = new HashMap<>();
+    private static final Map<String, List<String>> userAnswers = new HashMap<>();
     private final Set<String> waitingForInput = new HashSet<>();
     private static final Logger log = LoggerFactory.getLogger(UserStateManager.class);
     private BotApiClient client;
@@ -217,6 +227,9 @@ class UserStateManager {
             log.info("Пользователь написал сообщение: {}", userInput);
             JSONObject current = userStates.get(chatId);
 
+            saveUserAnswer(chatId, userInput);
+            sendText(chatId, "Вы ввели: " + userInput);
+
             if (current != null && current.has("handler")) {
                 String handler = current.getString("handler");
                 if (!HandlerProcessor.processHandler(handler, userInput, chatId)) { // удалить последний параметр
@@ -225,10 +238,6 @@ class UserStateManager {
                 }
             }
 
-            saveUserAnswer(chatId, userInput);
-            sendText(chatId, "Вы ввели: " + userInput);
-
-            //JSONObject current = userStates.get(chatId);
             if (current != null && current.has("next")) {
                 JSONObject next = current.getJSONObject("next");
                 userStates.put(chatId, next);
@@ -236,7 +245,7 @@ class UserStateManager {
             } else {
                 getUserAnswers(chatId);
                 sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
-                userAnswers.remove(chatId);
+                //userAnswers.remove(chatId);
                 userStates.remove(chatId);
             }
         }
@@ -269,7 +278,7 @@ class UserStateManager {
                     getUserAnswers(chatId);
                     sendText(chatId, "Диалог завершен. Напишите что-нибудь в чат, чтобы начать заново.");
                     log.info("Диалог завершен для пользователя: {}", chatId);
-                    userAnswers.remove(chatId);
+                    //userAnswers.remove(chatId);
                     userStates.remove(chatId);
                 }
                 break;
@@ -282,8 +291,9 @@ class UserStateManager {
         log.debug("Ответ пользователя {}: {}", chatId, answer);
     }
 
-    public void getUserAnswers(String chatId) {
+    public  Map<String, List<String>> getUserAnswers(String chatId) {
         sendText(chatId, "Ответы пользователя: " + chatId + "\n" + String.join("\n ", userAnswers.getOrDefault(chatId, Collections.emptyList())));
+        return userAnswers;
     }
 
     public void sendQuestionWithButtons(String chatId, JSONObject node) {
