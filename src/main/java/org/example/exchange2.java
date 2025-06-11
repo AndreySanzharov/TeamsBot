@@ -1,34 +1,56 @@
 package org.example.TagBot;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ru.mail.im.botapi.BotApiClient;
+import ru.mail.im.botapi.BotApiClientController;
+import ru.mail.im.botapi.fetcher.event.Event;
 import java.io.IOException;
-import java.sql.*;
+import java.sql.SQLException;
 
-public class DbManager {
-    String jdbcUrl = "jdbc:h2:file:./data/testdb;DB_CLOSE_DELAY=-1";
-    String user = "sa";
-    String password = "";
+public class TagBotApplication {
+//    private static final String TOKEN = "001.1031916963.1477955322:1000000106";
+//    private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
+    private static final Logger log = LoggerFactory.getLogger(TagBotApplication.class);
+    private static final DbManager dbManager = new DbManager();
 
-    public void saveUserAnswer(String chatId, String answer) throws SQLException, IOException {
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
-             Statement stmt = conn.createStatement()) {
-
-            String schemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\schema.sql")));
-            stmt.execute(schemaSql);
-            String insertSql = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-                pstmt.setString(1, chatId);
-                pstmt.setString(2, answer);
-                pstmt.executeUpdate();
+    public static void main(String[] args) throws SQLException, IOException {
+        log.info("Бот запускается...");
+        dbManager.getConfigParams();
+        BotApiClient client = new BotApiClient(dbManager.getToken(), dbManager.getHost(), 0, 60);
+        BotApiClientController controller = BotApiClientController.startBot(client);
+        UserStateManager stateManager = new UserStateManager(client, controller);
+        EventHandler handler = new EventHandler(client, controller, stateManager);
+        client.addOnEventFetchListener(events -> {
+            for (Event event : events) {
+                try {
+                    handler.handleEvent(event);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-
-            // Чтение и вывод
-            ResultSet rs = stmt.executeQuery("SELECT * FROM users");
-            while (rs.next()) {
-                System.out.printf("User: %d, %s, %s%n",
-                        rs.getInt("id"),
-                        rs.getString("chatId"),
-                        rs.getString("answer"));
-            }
-        }
+        });
+        client.start();
+        log.info("Бот запустился.");
     }
 }
+
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users(
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  chatId VARCHAR(100) NOT NULL,
+  answer VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE config (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    token VARCHAR(255) NOT NULL,
+    host VARCHAR(255) NOT NULL,
+);
+
+INSERT INTO config (token, host)
+     VALUES ("001.1031916963.1477955322:1000000106", "https://api.vkteams.ext.lukoil.com/");
+
