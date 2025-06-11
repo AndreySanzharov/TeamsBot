@@ -1,27 +1,11 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS config;
-
-CREATE TABLE users(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  chatId VARCHAR(100) NOT NULL,
-  answer VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE config(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  token VARCHAR(255) NOT NULL,
-  host VARCHAR(255) NOT NULL
-);
-
-INSERT INTO config (token, host)
-     VALUES ('001.1031916963.1477955322:1000000106', 'https://api.vkteams.ext.lukoil.com/');
-
 package org.example.TagBot;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 
 public class DbManager {
@@ -33,49 +17,57 @@ public class DbManager {
     private String host = "";
     private String token = "";
 
-    public void saveUserAnswer(String chatId, String answer) throws SQLException, IOException {
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
-             Statement stmt = conn.createStatement()) {
-            String schemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\schema.sql")));
-            stmt.execute(schemaSql);
-            String insertSql = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
-            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
-                pstmt.setString(1, chatId);
-                pstmt.setString(2, answer);
-                pstmt.executeUpdate();
-            }
-
-            // Чтение и вывод
-            ResultSet rs = stmt.executeQuery("SELECT * FROM users");
-            while (rs.next()) {
-                System.out.printf("User: %d, %s, %s%n",
-                        rs.getInt("id"),
-                        rs.getString("chatId"),
-                        rs.getString("answer"));
-            }
+    public DbManager() {
+        try {
+            initDatabase();
+        } catch (Exception e) {
+            log.error("Ошибка при инициализации БД: {}", e.getMessage(), e);
         }
     }
 
     private void initDatabase() throws SQLException, IOException {
-        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
-             Statement stmt = conn.createStatement()) {
-            String shemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("src/main/resources/schema.sql")));
-            stmt.execute(shemaSql);
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password)) {
+            ResultSet rs = conn.getMetaData().getTables(null, null, "CONFIG", null);
+            if (!rs.next()) {
+                log.info("Инициализируем базу данных...");
+                String schemaSql = Files.readString(Paths.get("src/main/resources/schema.sql"));
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.execute(schemaSql);
+                }
+            } else {
+                log.info("База данных уже инициализирована.");
+            }
         }
     }
 
-    public void getConfigParams() throws SQLException, IOException {
-        initDatabase();
+    public void getConfigParams() {
         String query = "SELECT token, host FROM config LIMIT 1";
         try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(query)) {
+
             if (rs.next()) {
-                token = rs.getString("token");
-                host = rs.getString("host");
+                token = rs.getString("token").trim();
+                host = rs.getString("host").trim();
+                log.info("Конфигурация получена: token='{}', host='{}'", token, host);
             } else {
-                log.warn("Нет параметров конфигурации");
+                log.warn("Нет параметров конфигурации в таблице config.");
             }
+
+        } catch (SQLException e) {
+            log.error("Ошибка при получении конфигурации из БД: {}", e.getMessage(), e);
+        }
+    }
+
+    public void saveUserAnswer(String chatId, String answer) {
+        String insertSql = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+            pstmt.setString(1, chatId);
+            pstmt.setString(2, answer);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            log.error("Ошибка при сохранении ответа пользователя: {}", e.getMessage(), e);
         }
     }
 
@@ -87,12 +79,3 @@ public class DbManager {
         return token;
     }
 }
-Exception in thread "main" java.lang.IllegalArgumentException: Expected URL scheme 'http' or 'https' but no colon was found
-	at okhttp3.HttpUrl$Builder.parse(HttpUrl.java:1332)
-	at okhttp3.HttpUrl.get(HttpUrl.java:917)
-	at ru.mail.im.botapi.api.ApiImplementationFactory.<init>(ApiImplementationFactory.java:32)
-	at ru.mail.im.botapi.api.BotApi.<init>(BotApi.java:20)
-	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:88)
-	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:68)
-	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:58)
-	at org.example.TagBot.TagBotApplication.main(TagBotApplication.java:21)
