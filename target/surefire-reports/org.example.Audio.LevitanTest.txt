@@ -1,0 +1,14 @@
+-------------------------------------------------------------------------------
+Test set: org.example.Audio.LevitanTest
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 1.375 s <<< FAILURE! -- in org.example.Audio.LevitanTest
+org.example.Audio.LevitanTest.mustRerurnTextOfSpeech -- Time elapsed: 1.348 s <<< ERROR!
+javazoom.jl.decoder.JavaLayerException: C:\Users\sanzharovaa\IdeaProjects\bot\src\main\java\org\example\saveDir\formatted.mp3 (Не удается найти указанный файл)
+	at javazoom.jl.converter.Converter.convert(Converter.java:81)
+	at javazoom.jl.converter.Converter.convert(Converter.java:59)
+	at org.example.Audio.Mp3ToWavConverterJlayer.convertMp3ToWav(Mp3ToWavConverterJlayer.java:12)
+	at org.example.Audio.LevitanTest.mustRerurnTextOfSpeech(LevitanTest.java:15)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

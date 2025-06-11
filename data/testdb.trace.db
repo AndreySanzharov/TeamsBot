@@ -1,0 +1,13 @@
+2025-06-11 12:24:43.109761+03:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "CREATE TABLE config (\000d\000a    config_key VARCHAR(100) PRIMARY KEY,\000d\000a    config_value VARCHAR(255) NOT NULL,\000d\000a[*]);\000d\000a\000d\000a-- Заполнение конфигурации\000d\000aINSERT INTO config (config_key, config_value) VALUES \000d\000a    ('token', '001.1031916963.1477955322:1000000106'),\000d\000a    ('host', 'https://api.vkteams.ext.lukoil.com/');\000d\000a"; ожидалось "identifier"
+Syntax error in SQL statement "CREATE TABLE config (\000d\000a    config_key VARCHAR(100) PRIMARY KEY,\000d\000a    config_value VARCHAR(255) NOT NULL,\000d\000a[*]);\000d\000a\000d\000a-- Заполнение конфигурации\000d\000aINSERT INTO config (config_key, config_value) VALUES \000d\000a    ('token', '001.1031916963.1477955322:1000000106'),\000d\000a    ('host', 'https://api.vkteams.ext.lukoil.com/');\000d\000a"; expected "identifier"; SQL statement:
+CREATE TABLE config (
+    config_key VARCHAR(100) PRIMARY KEY,
+    config_value VARCHAR(255) NOT NULL,
+);
+
+-- Заполнение конфигурации
+INSERT INTO config (config_key, config_value) VALUES 
+    ('token', '001.1031916963.1477955322:1000000106'),
+    ('host', 'https://api.vkteams.ext.lukoil.com/');
+ [42001-232]
