@@ -10,28 +10,89 @@ CREATE TABLE users(
 CREATE TABLE config(
   id INT PRIMARY KEY AUTO_INCREMENT,
   token VARCHAR(255) NOT NULL,
-  host VARCHAR(255) NOT NULL,
+  host VARCHAR(255) NOT NULL
 );
 
 INSERT INTO config (token, host)
-     VALUES ("001.1031916963.1477955322:1000000106", "https://api.vkteams.ext.lukoil.com/");
+     VALUES ('001.1031916963.1477955322:1000000106', 'https://api.vkteams.ext.lukoil.com/');
 
-Exception in thread "main" org.h2.jdbc.JdbcSQLSyntaxErrorException: Синтаксическая ошибка в выражении SQL "CREATE TABLE config(\000d\000a  id INT PRIMARY KEY AUTO_INCREMENT,\000d\000a  \000d\000a[*]);\000d\000a\000d\000aINSERT INTO config (token, host)\000d\000a     VALUES (""001.1031916963.1477955322:1000000106"", ""https://api.vkteams.ext.lukoil.com/"");\000d\000a\000d\000a"; ожидалось "identifier"
-Syntax error in SQL statement "CREATE TABLE config(\000d\000a  id INT PRIMARY KEY AUTO_INCREMENT,\000d\000a  \000d\000a[*]);\000d\000a\000d\000aINSERT INTO config (token, host)\000d\000a     VALUES (""001.1031916963.1477955322:1000000106"", ""https://api.vkteams.ext.lukoil.com/"");\000d\000a\000d\000a"; expected "identifier"; SQL statement:
-CREATE TABLE config(
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  
-);
+package org.example.TagBot;
 
-INSERT INTO config (token, host)
-     VALUES ("001.1031916963.1477955322:1000000106", "https://api.vkteams.ext.lukoil.com/");
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
- [42001-232]
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:514)
-	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
-	at org.h2.message.DbException.getSyntaxError(DbException.java:261)
-	at org.h2.command.Parser.readIdentifier(Parser.java:5527)
-	at org.h2.command.Parser.parseTableColumnDefinition(Parser.java:8871)
-	at org.h2.command.Parser.parseCreateTable(Parser.java:8819)
-	at org.h2.command.Parser.parseCreate(Parser.java:6398)
-	at org.h2.command.Parser.parsePrepared(Parser.java:645)
+import java.io.IOException;
+import java.sql.*;
+
+public class DbManager {
+    private final Logger log = LoggerFactory.getLogger(DbManager.class);
+    private final String jdbcUrl = "jdbc:h2:file:./data/testdb;DB_CLOSE_DELAY=-1";
+    private final String user = "sa";
+    private final String password = "";
+
+    private String host = "";
+    private String token = "";
+
+    public void saveUserAnswer(String chatId, String answer) throws SQLException, IOException {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement()) {
+            String schemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\schema.sql")));
+            stmt.execute(schemaSql);
+            String insertSql = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(insertSql)) {
+                pstmt.setString(1, chatId);
+                pstmt.setString(2, answer);
+                pstmt.executeUpdate();
+            }
+
+            // Чтение и вывод
+            ResultSet rs = stmt.executeQuery("SELECT * FROM users");
+            while (rs.next()) {
+                System.out.printf("User: %d, %s, %s%n",
+                        rs.getInt("id"),
+                        rs.getString("chatId"),
+                        rs.getString("answer"));
+            }
+        }
+    }
+
+    private void initDatabase() throws SQLException, IOException {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement()) {
+            String shemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("src/main/resources/schema.sql")));
+            stmt.execute(shemaSql);
+        }
+    }
+
+    public void getConfigParams() throws SQLException, IOException {
+        initDatabase();
+        String query = "SELECT token, host FROM config LIMIT 1";
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+            if (rs.next()) {
+                token = rs.getString("token");
+                host = rs.getString("host");
+            } else {
+                log.warn("Нет параметров конфигурации");
+            }
+        }
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getToken() {
+        return token;
+    }
+}
+Exception in thread "main" java.lang.IllegalArgumentException: Expected URL scheme 'http' or 'https' but no colon was found
+	at okhttp3.HttpUrl$Builder.parse(HttpUrl.java:1332)
+	at okhttp3.HttpUrl.get(HttpUrl.java:917)
+	at ru.mail.im.botapi.api.ApiImplementationFactory.<init>(ApiImplementationFactory.java:32)
+	at ru.mail.im.botapi.api.BotApi.<init>(BotApi.java:20)
+	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:88)
+	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:68)
+	at ru.mail.im.botapi.BotApiClient.<init>(BotApiClient.java:58)
+	at org.example.TagBot.TagBotApplication.main(TagBotApplication.java:21)
