@@ -1,5 +1,84 @@
 package org.example.TagBot;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.sql.*;
+
+public class DbManager {
+    private final Logger log = LoggerFactory.getLogger(DbManager.class);
+    private final String jdbcUrl = "jdbc:h2:file:./data/testdb;DB_CLOSE_DELAY=-1";
+    private final String user = "sa";
+    private final String password = "";
+
+    private String host = "";
+    private String token = "";
+
+
+    public void saveUserAnswer(String chatId, String answer) throws SQLException, IOException {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement()) {
+            String schemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("C:\\Users\\SanzharovAA\\TeamsBot\\src\\main\\resources\\schema.sql")));
+            stmt.execute(schemaSql);
+            try (PreparedStatement pstmt = conn.prepareStatement(Queries.saveAnswersQuery)) {
+                pstmt.setString(1, chatId);
+                pstmt.setString(2, answer);
+                pstmt.executeUpdate();
+            }
+
+            // Чтение и вывод
+            ResultSet rs = stmt.executeQuery(Queries.printDBQuery);
+            while (rs.next()) {
+                System.out.printf("%d, %s, %s%n",
+                        rs.getInt("id"),
+                        rs.getString("chatId"),
+                        rs.getString("answer"));
+            }
+        }
+    }
+
+    private void initDatabase() throws SQLException, IOException {
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement()) {
+            String shemaSql = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("src/main/resources/schema.sql")));
+            stmt.execute(shemaSql);
+        }
+    }
+
+    public void getConfigParams() throws SQLException, IOException {
+        initDatabase();
+        try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(Queries.getConfigQuery)) {
+
+            while (rs.next()) {
+                String key = rs.getString("config_key").trim();
+                String value = rs.getString("config_value").trim();
+                switch (key) {
+                    case "token" -> token = value;
+                    case "host" -> host = value;
+                    default -> log.warn("Неизвестный параметр конфигурации: {}", key);
+                }
+            }
+
+            log.info("Конфигурация получена: token='{}', host='{}'", token, host);
+
+        } catch (SQLException e) {
+            log.error("Ошибка при получении конфигурации: {}", e.getMessage(), e);
+        }
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public String getToken() {
+        return token;
+    }
+}
+package org.example.TagBot;
+
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +89,7 @@ import ru.mail.im.botapi.fetcher.event.Event;
 import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 class EventHandler {
     private final BotApiClient client;
@@ -23,7 +103,7 @@ class EventHandler {
         this.stateManager = stateManager;
     }
 
-    public void handleEvent(Event event) {
+    public void handleEvent(Event event) throws SQLException, IOException {
         switch (event) {
             case NewMessageEvent message -> handleMessageEvent(message);
             case CallbackQueryEvent callback -> handleCallbackEvent(callback);
@@ -47,7 +127,7 @@ class EventHandler {
         }
     }
 
-    private void handleCallbackEvent(CallbackQueryEvent callback) {
+    private void handleCallbackEvent(CallbackQueryEvent callback) throws SQLException, IOException {
         String chatId = callback.getFrom().getUserId();
         String queryId = callback.getQueryId();
         String data = callback.getCallbackData();
@@ -98,48 +178,69 @@ package org.example.TagBot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Handlers {
     private static final Logger log = LoggerFactory.getLogger(Handlers.class);
     private static UserStateManager userStateManager;
 
+    // Пул потоков для выполнения задач
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
+
     public static void setUserStateManager(UserStateManager manager) {
         userStateManager = manager;
     }
 
-    public static boolean validateName(String input, String chatId) {
-        log.info("Сработал обработчик validateName");
-        if (input == null) return false;
-        int spaceCount = (int) input.chars().filter(ch -> ch == ' ').count();
-        boolean valid = spaceCount >= 2;
+    public static Future<Boolean> validateNameAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик validateName");
+            if (input == null) return false;
+            int spaceCount = (int) input.chars().filter(ch -> ch == ' ').count();
+            boolean valid = spaceCount >= 2;
 
-        if (!valid) {
-            userStateManager.sendText(chatId, "Неверный формат ФИО. Попробуйте еще раз");
-        }
-        log.info("Проверка ФИО '{}': {} пробелов => {}", input, spaceCount, valid);
-        return valid;
+            if (!valid) {
+                userStateManager.sendText(chatId, "Неверный формат ФИО. Попробуйте еще раз");
+            }
+            log.info("Проверка ФИО '{}': {} пробелов => {}", input, spaceCount, valid);
+            return valid;
+        });
     }
 
-    public static boolean searchName(String input, String chatId) {
-        log.info("Сработал обработчик searchName");
-        Set<String> usersList = Set.of("Иванов Иван Иванович", "Петров Петр Петрович"); // пример списка. Надо удалить
-        boolean isUserInList = usersList.contains(input);
-        if (!isUserInList) {
-            userStateManager.sendText(chatId, "Пользователь не найден. Попробуйте еще раз");
-        }
-        return isUserInList;
+    public static Future<Boolean> searchNameAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик searchName");
+            Set<String> usersList = Set.of("Иванов Иван Иванович", "Петров Петр Петрович"); // пример имен. Надо удалить
+            boolean isUserInList = usersList.contains(input);
+            if (!isUserInList) {
+                userStateManager.sendText(chatId, "Пользователь не найден. Попробуйте еще раз");
+            }
+            return isUserInList;
+        });
     }
 
-    public static boolean answers(String input, String chatId){
-        log.info("Сработал обработчик answers");
-        String question = "??";
-
-        // логика
-        return true;
+    public static Future<Boolean> answersAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик answers");
+            String question = "??";
+            // здесь можно добавить логику обработки ответа
+            return true;
+        });
     }
+
+    // Метод для завершения всех потоков — вызывать при остановке приложения
+    public static void shutdown() {
+        executor.shutdown();
+    }
+}
+package org.example.TagBot;
+
+public interface Queries {
+    String saveAnswersQuery = "INSERT INTO users (chatId, answer) VALUES (?, ?)";
+    String printDBQuery = "SELECT * FROM users";
+    String getConfigQuery = "SELECT config_key, config_value FROM config";
 }
 package org.example.TagBot;
 
@@ -147,25 +248,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.mail.im.botapi.BotApiClient;
 import ru.mail.im.botapi.BotApiClientController;
+import ru.mail.im.botapi.fetcher.event.Event;
+import java.io.IOException;
+import java.sql.SQLException;
 
 public class TagBotApplication {
-    private static final String TOKEN = "001.1031916963.1477955322:1000000106";
-    private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
+//    private static final String TOKEN = "001.1031916963.1477955322:1000000106";
+//    private static final String HOST = "https://api.vkteams.ext.lukoil.com/";
     private static final Logger log = LoggerFactory.getLogger(TagBotApplication.class);
+    private static final DbManager dbManager = new DbManager();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SQLException, IOException {
         log.info("Бот запускается...");
-        BotApiClient client = new BotApiClient(HOST, TOKEN, 0, 60);
+
+        dbManager.getConfigParams();
+        log.info("DB HOST {}:", dbManager.getHost());
+        log.info("DB TOKEN {}:", dbManager.getToken());
+
+        BotApiClient client = new BotApiClient(dbManager.getHost(), dbManager.getToken(), 0, 60);
         BotApiClientController controller = BotApiClientController.startBot(client);
         UserStateManager stateManager = new UserStateManager(client, controller);
         EventHandler handler = new EventHandler(client, controller, stateManager);
-
-        UserStateManager userStateManager = new UserStateManager(client, controller);
-        HandlerProcessor processor = new HandlerProcessor(userStateManager);
-
-        client.addOnEventFetchListener(events -> events.forEach(handler::handleEvent));
+        client.addOnEventFetchListener(events -> {
+            for (Event event : events) {
+                try {
+                    handler.handleEvent(event);
+                } catch (SQLException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
         client.start();
-        log.info("Бот запустился.");
+
+         log.info("Бот запустился.");
     }
 }
 package org.example.TagBot;
@@ -182,6 +297,7 @@ import ru.mail.im.botapi.fetcher.event.NewMessageEvent;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.*;
 
 class UserStateManager {
@@ -190,9 +306,9 @@ class UserStateManager {
     //private static final Map<String, List<String>> userAnswers = new HashMap<>();
     private final Set<String> waitingForInput = new HashSet<>();
     private static final Logger log = LoggerFactory.getLogger(UserStateManager.class);
-    private BotApiClient client;
-    private BotApiClientController controller;
-
+    private final BotApiClient client;
+    private final BotApiClientController controller;
+    private final DbManager dbManager = new DbManager();
 
     public UserStateManager(BotApiClient client, BotApiClientController controller) {
         this.client = client;
@@ -221,7 +337,7 @@ class UserStateManager {
         }
     }
 
-    public void processTextMessage(String chatId, NewMessageEvent message) throws IOException {
+    public void processTextMessage(String chatId, NewMessageEvent message) throws IOException, SQLException {
         if (waitingForInput.contains(chatId)) {
             waitingForInput.remove(chatId);
             String userInput = message.getText();
@@ -229,6 +345,7 @@ class UserStateManager {
             JSONObject current = userStates.get(chatId);
 
             //saveUserAnswer(chatId, userInput);
+            dbManager.saveUserAnswer(chatId, userInput);
             sendText(chatId, "Вы ввели: " + userInput);
 
             if (current != null && current.has("handler")) {
@@ -252,7 +369,7 @@ class UserStateManager {
         }
     }
 
-    public void processCallback(String chatId, String data) {
+    public void processCallback(String chatId, String data) throws SQLException, IOException {
         JSONObject current = userStates.get(chatId);
         if (current == null) {
             log.warn("Нет состояния для пользователя: {}", chatId);
@@ -268,6 +385,7 @@ class UserStateManager {
         for (int i = 0; i < options.length(); i++) {
             JSONObject option = options.getJSONObject(i);
             if (option.optString("text").equals(data)) {
+                dbManager.saveUserAnswer(chatId, data);
                 //saveUserAnswer(chatId, data);
                 if (option.has("next")) {
                     JSONObject next = option.getJSONObject("next");
@@ -345,4 +463,3 @@ class UserStateManager {
         }
     }
 }
-
