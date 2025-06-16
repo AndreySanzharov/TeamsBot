@@ -1,43 +1,62 @@
-DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS config;
+package org.example.TagBot;
 
-CREATE TABLE users (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    chatId VARCHAR(100) NOT NULL,
-    answer VARCHAR(100) NOT NULL
-);
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-CREATE TABLE config (
-    config_key VARCHAR(100) PRIMARY KEY,
-    config_value VARCHAR(255) NOT NULL
-);
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
--- Заполнение конфигурации
-INSERT INTO config (config_key, config_value) VALUES 
-    ('token', '001.1031916963.1477955322:1000000106'),
-    ('host', 'https://api.vkteams.ext.lukoil.com/');
+public class Handlers {
+    private static final Logger log = LoggerFactory.getLogger(Handlers.class);
+    private static UserStateManager userStateManager;
 
+    // Пул потоков для выполнения задач
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
 
+    public static void setUserStateManager(UserStateManager manager) {
+        userStateManager = manager;
+    }
 
-public void getConfigParams() {
-    String query = "SELECT config_key, config_value FROM config";
-    try (Connection conn = DriverManager.getConnection(jdbcUrl, user, password);
-         Statement stmt = conn.createStatement();
-         ResultSet rs = stmt.executeQuery(query)) {
+    public static Future<Boolean> validateNameAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик validateName");
+            if (input == null) return false;
+            int spaceCount = (int) input.chars().filter(ch -> ch == ' ').count();
+            boolean valid = spaceCount >= 2;
 
-        while (rs.next()) {
-            String key = rs.getString("config_key").trim();
-            String value = rs.getString("config_value").trim();
-            switch (key) {
-                case "token" -> token = value;
-                case "host" -> host = value;
-                default -> log.warn("Неизвестный параметр конфигурации: {}", key);
+            if (!valid) {
+                userStateManager.sendText(chatId, "Неверный формат ФИО. Попробуйте еще раз");
             }
-        }
+            log.info("Проверка ФИО '{}': {} пробелов => {}", input, spaceCount, valid);
+            return valid;
+        });
+    }
 
-        log.info("Конфигурация получена: token='{}', host='{}'", token, host);
+    public static Future<Boolean> searchNameAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик searchName");
+            Set<String> usersList = Set.of("Иванов Иван Иванович", "Петров Петр Петрович"); // пример
+            boolean isUserInList = usersList.contains(input);
+            if (!isUserInList) {
+                userStateManager.sendText(chatId, "Пользователь не найден. Попробуйте еще раз");
+            }
+            return isUserInList;
+        });
+    }
 
-    } catch (SQLException e) {
-        log.error("Ошибка при получении конфигурации: {}", e.getMessage(), e);
+    public static Future<Boolean> answersAsync(String input, String chatId) {
+        return executor.submit(() -> {
+            log.info("Сработал обработчик answers");
+            String question = "??";
+            // здесь можно добавить логику обработки ответа
+            return true;
+        });
+    }
+
+    // Метод для завершения всех потоков — вызывать при остановке приложения
+    public static void shutdown() {
+        executor.shutdown();
     }
 }
